@@ -1,0 +1,5 @@
+node server.js
+npm install uuid
+npm install node-thermal-printer
+npm install qrcode
+npm install serialport

@@ -1,0 +1,275 @@
+
+
+/* ==========================================================================
+   1. Base & Global Styles
+   ========================================================================== */
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f8fafc;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: pan-x pan-y;
+}
+
+.heading-font {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Allow dynamic user forms inputs to remain fully selectable */
+input, select, textarea {
+    -webkit-user-select: auto !important;
+    user-select: auto !important;
+}
+
+/* Custom Scrollbar for Inner Components & Modals */
+::-webkit-scrollbar { 
+    width: 6px; 
+    height: 6px; 
+}
+::-webkit-scrollbar-track { 
+    background: transparent; 
+}
+::-webkit-scrollbar-thumb { 
+    background: #cbd5e1; 
+    border-radius: 10px; 
+}
+::-webkit-scrollbar-thumb:hover { 
+    background: #94a3b8; 
+}
+
+
+/* ==========================================================================
+   2. Page Structure & Navigation Layouts
+   ========================================================================== */
+.page { 
+    display: none; 
+    height: 100vh; 
+    width: 100vw; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.active-page { 
+    display: flex; 
+}
+
+
+/* ==========================================================================
+   3. Input Floating Labels & Form Controls
+   ========================================================================== */
+.input-floating-container { 
+    position: relative; 
+    margin-bottom: 1.5rem; 
+    width: 100%; 
+}
+
+.input-floating-container input, 
+.input-floating-container select {
+    padding-top: 1.75rem !important;
+    padding-bottom: 0.5rem !important;
+    height: 4rem !important;
+}
+
+.input-floating-container label {
+    position: absolute; 
+    top: 50%; 
+    left: 1.25rem; 
+    transform: translateY(-50%);
+    color: #94a3b8; 
+    pointer-events: none; 
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+    font-size: 0.95rem;
+}
+
+/* Floating Label Transform States on Active Input Focus / Value Detection */
+.input-floating-container input:focus ~ label,
+.input-floating-container input:not(:placeholder-shown) ~ label,
+.input-floating-container select:focus ~ label,
+.input-floating-container select:not([value=""]) ~ label,
+.input-floating-container select:valid ~ label,
+.input-floating-container input[type="date"] ~ label {
+    top: 0.65rem;
+    left: 0.8rem;
+    transform: translateY(0);
+    font-size: 0.75rem;
+    background: white;
+    padding: 0 4px;
+    color: #0f766e;
+    font-weight: 700;
+}
+
+.form-control { 
+    width: 100%; 
+    padding: 1.2rem 1rem; 
+    border: 2px solid #e2e8f0; 
+    border-radius: 1rem; 
+    outline: none; 
+    background: white; 
+    font-size: 1.1rem; 
+    color: #1e293b; 
+    font-weight: 500;
+}
+
+.form-control:focus { 
+    border-color: #0f766e; 
+    box-shadow: 0 4px 12px rgba(15, 118, 110, 0.1); 
+}
+
+select.form-control { 
+    cursor: pointer; 
+    appearance: none; 
+}
+
+/* Dynamic shifting to prevent layout blocks when virtual typing triggers */
+.form-shift-up {
+    transform: translateY(-80px);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* ==========================================================================
+   4. Modals, Overlays & Digital Signage Elements
+   ========================================================================== */
+#camera-modal, 
+#modal-id-selector { 
+    display: none; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100vh; 
+    background: rgba(2, 6, 23, 0.85); 
+    backdrop-filter: blur(8px); 
+    z-index: 9999; 
+    justify-content: center; 
+    align-items: center; 
+}
+
+/* High Fidelity Figma Background Photo Overlay */
+.bg-blue-photo-overlay {
+    background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 32, 67, 0.85)), url('https://static2.bigstockphoto.com/5/7/4/large1500/475603217.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Animated Linear Gradient Shift Layer (Overlay mode) */
+.animated-gradient-overlay {
+    background: linear-gradient(-45deg, rgba(20, 184, 166, 0.15), rgba(99, 102, 241, 0.15), rgba(13, 148, 136, 0.2), rgba(6, 78, 59, 0.15));
+    background-size: 400% 400%;
+    animation: bg-slide 10s infinite ease-in-out;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes bg-slide {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Frosted Glass Base Layers */
+.blur-backdrop {
+    backdrop-filter: blur(20px) saturate(190%);
+    -webkit-backdrop-filter: blur(20px) saturate(190%);
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.blur-backdrop-dark {
+    backdrop-filter: blur(20px) saturate(190%);
+    -webkit-backdrop-filter: blur(20px) saturate(190%);
+    background-color: rgba(15, 23, 42, 0.65);
+}
+
+
+/* ==========================================================================
+   5. Interactive Hardware Features & Animations
+   ========================================================================== */
+/* Kiosk Hardware Touch & Sound Pulse Action Feedback */
+@keyframes pulse-glow {
+    0%, 100% { transform: scale(1); opacity: 0.9; filter: drop-shadow(0 0 15px rgba(20, 184, 166, 0.4)); }
+    50% { transform: scale(1.03); opacity: 1; filter: drop-shadow(0 0 30px rgba(20, 184, 166, 0.7)); }
+}
+.screensaver-action {
+    animation: pulse-glow 3s infinite ease-in-out;
+}
+
+.ripple-btn {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.ripple-btn:active {
+    transform: scale(0.96);
+    box-shadow: inset 0 3px 10px rgba(0,0,0,0.2);
+}
+
+/* Dynamic Scan Line Laser Animation for Document Processing */
+@keyframes laser-scan {
+    0%, 100% { top: 0%; opacity: 0.8; }
+    50% { top: 100%; opacity: 1; }
+}
+.scan-laser {
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #22d3ee, transparent);
+    box-shadow: 0 0 15px #06b6d4, 0 0 5px #22d3ee;
+    position: absolute;
+    left: 0;
+    right: 0;
+    animation: laser-scan 2s infinite linear;
+}
+
+/* Custom Typing Blinking Cursor UI */
+@keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+.typing-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.25rem;
+    background-color: #0f766e;
+    animation: cursor-blink 0.9s infinite;
+    vertical-align: middle;
+    margin-left: 2px;
+}
+
+
+/* ==========================================================================
+   6. Thermal Receipt Simulation Paper Effect
+   ========================================================================== */
+.thermal-receipt {
+    background-color: #fcfcfc;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    background-image: linear-gradient(#e2e8f0 1px, transparent 1px);
+    background-size: 100% 2.25rem;
+    position: relative;
+}
+.thermal-receipt::after {
+    content: "";
+    position: absolute;
+    bottom: -12px;
+    left: 0;
+    width: 100%;
+    height: 12px;
+    background: linear-gradient(-135deg, transparent 6px, #fcfcfc 0), linear-gradient(135deg, transparent 6px, #fcfcfc 0);
+    background-size: 12px 12px;
+}
+
+
+/* ==========================================================================
+   7. Virtual Kioskboard Custom Component Layout Integrations
+   ========================================================================== */
+/* Responsive Keyboard Adjustment Configurations */
+.keyboard-active #form-scroll-container {
+    height: 35vh !important; /* Force input viewport tracking to isolate field views */
+}
+
+.kioskboard-container {
+    height: 35vh !important;
+    min-height: 250px;
+}

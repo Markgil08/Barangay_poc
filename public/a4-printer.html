@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A4 Document Printing Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen p-6 font-['Inter']">
+
+<div class="w-full max-w-4xl text-center">
+    
+    <div class="mb-10">
+        <h1 class="text-4xl font-black text-cyan-400 tracking-tight uppercase">Printing Station Monitor</h1>
+        <p class="text-slate-400 mt-2">Hardware Mirror & Diagnostics Dashboard</p>
+    </div>
+
+    <div id="statusBox" class="bg-slate-800 border-2 border-slate-700 rounded-2xl p-6 mb-10 transition-colors duration-300">
+        <p id="statusMessage" class="text-2xl font-bold text-amber-400 animate-pulse">Waiting for Scanner...</p>
+    </div>
+
+    <div id="pseudo-paper" class="hidden mx-auto bg-white rounded-md p-10 text-left shadow-[0_20px_50px_rgba(0,0,0,0.5)] max-w-2xl transform transition-all">
+        <div class="border-b-4 border-slate-800 pb-4 mb-6 text-center">
+            <h2 id="docTitle" class="text-2xl font-black text-slate-800 uppercase tracking-widest"></h2>
+        </div>
+        
+        <pre id="docContent" class="font-['Courier_Prime'] text-blue-900 font-bold whitespace-pre-wrap leading-loose"></pre>
+        
+        <div class="mt-16 text-right text-slate-800">
+            <p class="font-bold">_______________________</p>
+            <p class="text-sm uppercase tracking-widest mt-1">Authorized Signature</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const eventSource = new EventSource('/api/a4-stream');
+
+    eventSource.onmessage = function(event) {
+        const result = JSON.parse(event.data);
+        const msg = document.getElementById('statusMessage');
+        const box = document.getElementById('statusBox');
+        const paper = document.getElementById('pseudo-paper');
+        
+        paper.classList.add('hidden');
+        box.className = "bg-slate-800 border-2 rounded-2xl p-6 mb-10 transition-colors duration-300"; // reset styles
+
+        if(!result.success) {
+            box.classList.add('border-red-500', 'bg-red-900/30');
+            msg.innerHTML = `<span class="text-red-400 font-bold uppercase">ERROR: ${result.message}</span>`;
+            setTimeout(() => { 
+                box.classList.remove('border-red-500', 'bg-red-900/30');
+                box.classList.add('border-slate-700');
+                msg.innerHTML = "Waiting for scanner..."; 
+            }, 5000);
+        } else {
+            // SUCCESS!
+            box.classList.add('border-emerald-500', 'bg-emerald-900/30');
+            msg.innerHTML = `<span class="text-emerald-400 font-bold uppercase">PRINTING AUTO-INITIATED!</span>`;
+            
+            document.getElementById('docTitle').innerText = result.dbData.doc_type;
+            
+            let content = "";
+            const dataObj = JSON.parse(result.dbData.document_data);
+            for (const [key, value] of Object.entries(dataObj)) {
+                content += `${key.padEnd(20, ' ')} : ${value}\n`;
+            }
+            document.getElementById('docContent').innerHTML = content;
+            
+            paper.classList.remove('hidden');
+            
+            // Reset screen after 7 seconds
+            setTimeout(() => { 
+                paper.classList.add('hidden');
+                box.classList.remove('border-emerald-500', 'bg-emerald-900/30');
+                box.classList.add('border-slate-700');
+                msg.className = "text-2xl font-bold text-amber-400 animate-pulse";
+                msg.innerHTML = "Waiting for scanner..."; 
+            }, 7000);
+        }
+    };
+</script>
+
+</body>
+</html>

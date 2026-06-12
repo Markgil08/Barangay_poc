@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barangay Sto. Niño Document Kiosk System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/kioskboard@2.3.0/dist/kioskboard-2.3.0.min.css">
+    <link rel="stylesheet" href="dist/css/layout.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="kioskboard-2.3.0.min.css" />
+    
+   <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; overflow: hidden; }
+        .heading-font { font-family: 'Poppins', sans-serif; }
+        
+        /* Page Transition Logic */
+        .page { display: none !important; height: 100vh; width: 100vw; flex-direction: column; align-items: center; justify-content: center; }
+        .active-page { display: flex !important; }
+        
+        /* Input Styles */
+        .input-floating-container { position: relative; margin-bottom: 1.5rem; width: 100%; }
+        .input-floating-container label {
+            position: absolute; top: 50%; left: 1rem; transform: translateY(-50%);
+            color: #94a3b8; pointer-events: none; transition: 0.2s ease all; font-size: 1rem;
+        }
+        .input-floating-container input:focus ~ label,
+        .input-floating-container input:not(:placeholder-shown) ~ label,
+        .input-floating-container select:focus ~ label,
+        .input-floating-container select:valid ~ label,
+        .input-floating-container input[type="date"] ~ label {
+            top: 0; left: 0.8rem; font-size: 0.75rem; background: white; padding: 0 4px; color: #0f766e; font-weight: bold;
+        }
+        .form-control { width: 100%; padding: 1.2rem 1rem; border: 2px solid #e2e8f0; border-radius: 1rem; outline: none; background: white; font-size: 1.1rem; color: #1e293b; font-weight: 500;}
+        .form-control:focus { border-color: #0f766e; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.1); }
+        select.form-control { cursor: pointer; appearance: none; }
+
+        /* Modals */
+        #camera-modal, #modal-id-selector, #custom-message-box { 
+            display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; 
+            background:rgba(2, 6, 23, 0.85); backdrop-filter: blur(8px); z-index:9999; 
+            justify-content:center; align-items:center; 
+        }
+
+        /* Keyboard Override */
+        #KioskBoard-VirtualKeyboard {
+            width: 100vw !important; left: 0 !important; right: 0 !important; margin: 0 auto !important; 
+            transform: scale(0.80) !important; transform-origin: bottom center !important; 
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+        }
+        
+        /* High Fidelity Figma Background Photo Overlay */
+        .bg-blue-photo-overlay {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 32, 67, 0.85)), url('https://static2.bigstockphoto.com/5/7/4/large1500/475603217.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Animated Linear Gradient Shift Layer (Overlay mode) */
+        .animated-gradient-overlay {
+            background: linear-gradient(-45deg, rgba(20, 184, 166, 0.15), rgba(99, 102, 241, 0.15), rgba(13, 148, 136, 0.2), rgba(6, 78, 59, 0.15));
+            background-size: 400% 400%;
+            animation: bg-slide 10s infinite ease-in-out;
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes bg-slide {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Frosted Glass Base Layers */
+        .blur-backdrop {
+            backdrop-filter: blur(20px) saturate(190%);
+            -webkit-backdrop-filter: blur(20px) saturate(190%);
+            background-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .blur-backdrop-dark {
+            backdrop-filter: blur(20px) saturate(190%);
+            -webkit-backdrop-filter: blur(20px) saturate(190%);
+            background-color: rgba(15, 23, 42, 0.65);
+        }
+    </style>
+</head>
+
+<body class="bg-blue-photo-overlay min-h-screen flex flex-col justify-between relative">
+    <div class="animated-gradient-overlay"></div>
+    
+    <!-- HEADER -->
+    <header id="kiosk-status-bar" class="relative bg-white/95 backdrop-blur-md border-b border-slate-200/50 px-4 md:px-8 py-3 md:py-4 hidden md:flex justify-between items-center shadow-md z-40">
+        <div class="flex items-center space-x-3">
+            <span class="flex h-3 w-3 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            </span>
+            <div class="text-xs text-slate-600 uppercase tracking-wider font-semibold">
+                Barangay Sto. Niño Kiosk #01 <span class="mx-1.5">•</span> Parañaque City <span class="mx-1.5">•</span> Online
+            </div>
+        </div>
+        <div class="flex items-center space-x-4 md:space-x-6 text-slate-700 font-medium">
+            <div class="flex items-center space-x-2 text-xs md:text-sm" id="lang-indicator">
+                <i class="fa-solid fa-globe text-teal-600 animate-pulse"></i>
+                <span class="font-semibold text-slate-800" id="header-lang-text">English Mode</span>
+            </div>
+            <div class="text-sm md:text-base font-bold bg-slate-100 px-3 py-1 md:px-4 md:py-1.5 rounded-xl shadow-inner text-teal-800" id="live-clock-kiosk">
+                --:--
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow w-full h-full relative overflow-hidden z-20">
+        
+        <!-- SCREENSAVER PAGE -->
+        <div id="page-screensaver" class="page active-page absolute inset-0 z-50 p-4 sm:p-6 md:p-12 select-none transition-all duration-700 ease-in-out">
+            <div class="max-w-5xl mx-auto w-full flex-grow flex flex-col justify-between h-full">
+                <div class="flex flex-col sm:flex-row sm:justify-between items-start w-full bg-black/30 backdrop-blur-md rounded-2xl md:rounded-[1.5rem] p-4 md:p-6 border border-white/10 gap-4 sm:gap-0">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-teal-600/35 p-3 rounded-2xl border border-teal-300/30">
+                            <i class="fa-solid fa-city text-xl md:text-3xl text-teal-300"></i>
+                        </div>
+                        <div>
+                            <h4 class="heading-font text-base md:text-xl font-bold tracking-wide text-white">Brgy. Sto. Niño E-Services</h4>
+                            <p class="text-[10px] md:text-xs text-teal-200 tracking-wider">Parañaque City, Metro Manila</p>
+                        </div>
+                    </div>
+                    <div class="text-left sm:text-right">
+                        <p class="text-[10px] md:text-xs uppercase tracking-widest text-teal-300">Operational Mode</p>
+                        <p class="text-xs md:text-sm font-semibold text-white">Fast & Secure Processing</p>
+                    </div>
+                </div>
+
+                <div class="max-w-3xl mx-auto w-full bg-white/15 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl md:rounded-[2.5rem] p-5 md:p-10 text-center my-auto cursor-pointer transition-transform hover:scale-[1.01] duration-300" onclick="nav('page-landing')">
+                    <div class="screensaver-action inline-block">
+                        <div class="bg-teal-500/20 border border-teal-300/40 p-5 md:p-10 rounded-full shadow-2xl backdrop-blur-lg mb-4 md:mb-8 inline-flex justify-center items-center">
+                            <i class="fa-solid fa-fingerprint text-4xl md:text-7xl text-white animate-pulse"></i>
+                        </div>
+                    </div>
+                    <h1 id="lang-welcome" class="heading-font text-2xl md:text-5xl font-extrabold tracking-tight text-white mb-2 md:mb-4 leading-snug">
+                        Pindutin ang Screen upang Magsimula
+                    </h1>
+                    <p id="lang-subwelcome" class="text-xs md:text-lg text-teal-100 max-w-lg mx-auto leading-relaxed">
+                        Touch Screen to Begin. Request, review, and print receipts for Barangay Documents instantly.
+                    </p>
+                </div>
+
+              <!-- Footer statistics on Screensaver (Fully inline and non-clipping) -->
+                <div class="flex justify-between items-center border-t border-white/10 pt-4 mb-10 md:pt-6 w-full text-white text-xs">
+                    <div class="text-left col-sm-6">
+                        <span class="text-[9px] md:text-xs text-teal-300 uppercase tracking-widest block font-bold mb-0.5">Assistance Desk</span>
+                        <p class="text-[11px] sm:text-xs md:text-sm font-semibold">Brgy. Hall: (02) 8820-2234</p>
+                    </div>
+                    <div class="text-right col-sm-6">
+                        <span class="text-[9px] col-sm-6 md:text-xs text-teal-300 uppercase tracking-widest block font-bold mb-0.5">Time & Date</span>
+                        <p class="text-[11px] sm:text-xs md:text-lg font-bold" id="screensaver-full-date">Loading Date...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LANDING / SELECTION PAGE -->
+        <div id="page-landing" class="page absolute inset-0 z-30 p-8 flex flex-col justify-center items-center bg-transparent transition-all duration-500 ease-in-out">
+            <div class="max-w-5xl mx-auto w-full bg-white/70 backdrop-blur-xl border border-white/50 shadow-2xl rounded-3xl md:rounded-[2.5rem] p-5 md:p-10 flex flex-col justify-between relative my-auto">
+                <div class="text-center mb-10">
+                    <span class="bg-teal-50 text-teal-700 font-bold px-4 py-2 rounded-full uppercase tracking-widest text-sm mb-3 inline-block border border-teal-100">Document Services</span>
+                    <h2 class="heading-font text-4xl font-extrabold text-slate-800" id="lang-select-title">Select Document Type</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <button onclick="presentEntryChoice('Barangay Clearance', 50)" class="group bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-teal-600 p-6 rounded-3xl text-left flex justify-between items-center shadow-sm hover:shadow-md transition-all">
+                        <div class="flex items-center space-x-5">
+                            <div class="bg-teal-50 text-teal-600 p-4 rounded-2xl group-hover:bg-teal-100 transition-colors"><i class="fa-solid fa-id-card text-3xl"></i></div>
+                            <div><span id="lang-clearance-title" class="font-bold text-slate-800 text-xl block">Barangay Clearance</span><span id="lang-clearance-desc" class="text-slate-500 text-sm block mt-1">Residency and moral standing.</span></div>
+                        </div>
+                        <span class="text-teal-700 bg-teal-50 font-black px-4 py-2 rounded-xl border border-teal-100">₱50</span>
+                    </button>
+
+                    <button onclick="presentEntryChoice('Certificate of Indigency', 0)" class="group bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-emerald-600 p-6 rounded-3xl text-left flex justify-between items-center shadow-sm hover:shadow-md transition-all">
+                        <div class="flex items-center space-x-5">
+                            <div class="bg-emerald-50 text-emerald-600 p-4 rounded-2xl group-hover:bg-emerald-100 transition-colors"><i class="fa-solid fa-hand-holding-dollar text-3xl"></i></div>
+                            <div><span id="lang-indigency-title" class="font-bold text-slate-800 text-xl block">Cert. of Indigency</span><span id="lang-indigency-desc" class="text-slate-500 text-sm block mt-1">Low-income financial assistance.</span></div>
+                        </div>
+                        <span class="text-emerald-700 bg-emerald-50 font-black px-4 py-2 rounded-xl border border-emerald-100">FREE</span>
+                    </button>
+
+                    <button onclick="presentEntryChoice('Certificate of Residency', 50)" class="group bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-cyan-600 p-6 rounded-3xl text-left flex justify-between items-center shadow-sm hover:shadow-md transition-all">
+                        <div class="flex items-center space-x-5">
+                            <div class="bg-cyan-50 text-cyan-600 p-4 rounded-2xl group-hover:bg-cyan-100 transition-colors"><i class="fa-solid fa-house-chimney-window text-3xl"></i></div>
+                            <div><span id="lang-residency-title" class="font-bold text-slate-800 text-xl block">Cert. of Residency</span><span id="lang-residency-desc" class="text-slate-500 text-sm block mt-1">Proof of address.</span></div>
+                        </div>
+                        <span class="text-cyan-700 bg-cyan-50 font-black px-4 py-2 rounded-xl border border-cyan-100">₱50</span>
+                    </button>
+
+                    <button onclick="presentEntryChoice('Barangay Business Permit', 200)" class="group bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-amber-600 p-6 rounded-3xl text-left flex justify-between items-center shadow-sm hover:shadow-md transition-all">
+                        <div class="flex items-center space-x-5">
+                            <div class="bg-amber-50 text-amber-600 p-4 rounded-2xl group-hover:bg-amber-100 transition-colors"><i class="fa-solid fa-shop text-3xl"></i></div>
+                            <div><span id="lang-business-title" class="font-bold text-slate-800 text-xl block">Business Permit</span><span id="lang-business-desc" class="text-slate-500 text-sm block mt-1">License to operate.</span></div>
+                        </div>
+                        <span class="text-amber-700 bg-amber-50 font-black px-4 py-2 rounded-xl border border-amber-100">₱200+</span>
+                    </button>
+                </div>
+
+                <footer class="mt-10 w-full flex flex-col sm:flex-row justify-between items-center border-t border-slate-300/50 pt-4 md:pt-6 gap-4 sm:gap-0 mt-0">
+                    <button class="ripple-btn btn text-slate-600 hover:text-slate-800 font-bold px-6 py-2.5 flex items-center space-x-2 bg-slate-100 rounded-xl text-xs md:text-base w-full sm:w-auto justify-center" onclick="nav('page-screensaver')">
+                        <i class="fa-solid fa-power-off text-red-500 animate-pulse"></i>
+                        <span id="lang-screensaver-btn">Screensaver</span>
+                    </button>
+                    
+                    <div class="flex items-center space-x-3 w-full sm:w-auto justify-center">
+                        <button onclick="toggleLanguage('en')" id="lang-btn-en" class="px-5 py-2.5 rounded-2xl font-bold transition-all text-xs md:text-sm shadow-sm bg-teal-700 text-white border border-teal-700 w-full sm:w-auto">English</button>
+                        <button onclick="toggleLanguage('ph')" id="lang-btn-ph" class="px-5 py-2.5 rounded-2xl font-bold transition-all text-xs md:text-sm shadow-sm bg-white/85 text-slate-700 border border-slate-200 hover:bg-white w-full sm:w-auto">Tagalog</button>
+                    </div>
+                </footer>
+            </div>
+        </div>
+
+        <!-- FORM ENTRY PAGE -->
+        <div id="page-form" class="page absolute inset-0 z-30 p-8">
+            <div class="max-w-3xl mx-auto w-full bg-white shadow-2xl rounded-[2.5rem] p-10 border border-slate-100 flex flex-col max-h-[90vh]">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-6 mb-6 shrink-0">
+                    <div>
+                        <h2 class="heading-font text-3xl font-extrabold text-teal-800 flex items-center" id="form-header">Document Form</h2>
+                        <p class="text-slate-500">Please fill out the details completely.</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-right">
+                        <span class="text-slate-500 text-xs font-bold uppercase tracking-wider block mb-1">Processing Fee</span>
+                        <span class="text-teal-700 font-black text-2xl">₱<span id="form-fee">0</span></span>
+                    </div>
+                </div>
+                
+                <div id="form-scroll-container" class="overflow-y-auto px-2 space-y-4 flex-grow relative pb-4">
+                    <div id="dynamic-fields"></div> 
+                </div>
+                
+                <div class="mt-6 flex gap-4 shrink-0 pt-4 border-t border-slate-100">
+                    <button class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-4 rounded-2xl w-1/3 text-lg transition-all" onclick="nav('page-landing')">Cancel</button>
+                    <button class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl w-2/3 shadow-lg text-lg transition-all" onclick="submitData()">Proceed to Assessment</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PREVIEW PAGE -->
+        <div id="page-preview" class="page absolute inset-0 z-30 p-8">
+            <div class="max-w-2xl mx-auto w-full bg-white shadow-2xl rounded-[2.5rem] p-10 border border-slate-100 text-center">
+                <i class="fa-solid fa-file-signature text-6xl text-teal-600 mb-6"></i>
+                <h2 class="heading-font text-3xl font-extrabold text-slate-800 mb-2">Review Details</h2>
+                <p class="text-slate-500 mb-8">Please verify your transaction before generating the receipt.</p>
+                
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 text-left mb-8">
+                    <p class="text-slate-500 text-sm font-bold uppercase mb-1">Document</p>
+                    <p class="text-xl font-bold text-slate-800 mb-4" id="prev-type"></p>
+                    
+                    <p class="text-slate-500 text-sm font-bold uppercase mb-1">Transaction ID</p>
+                    <p class="text-lg font-mono font-bold text-teal-700 mb-4" id="prev-id"></p>
+                    
+                    <p class="text-slate-500 text-sm font-bold uppercase mb-1">Total Due</p>
+                    <p class="text-3xl font-black text-slate-800">₱<span id="prev-fee"></span></p>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-4 rounded-2xl w-1/3 transition-all" onclick="nav('page-form')">Edit</button>
+                    <button class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl w-2/3 shadow-lg transition-all" onclick="printReceipt()">Confirm & Print</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUCCESS PAGE -->
+        <div id="page-success" class="page absolute inset-0 z-30 p-8">
+            <div class="max-w-2xl mx-auto w-full bg-white shadow-2xl rounded-[2.5rem] p-10 border border-slate-100 text-center">
+                <div class="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-5xl mx-auto mb-6 shadow-inner"><i class="fa-solid fa-circle-check"></i></div>
+                <h2 class="heading-font text-3xl font-extrabold text-slate-800 mb-2">Transaction Submitted!</h2>
+                <p class="text-slate-600 mb-6">Please take your receipt to the Cashier.</p>
+                <p class="bg-slate-100 inline-block px-6 py-2 rounded-xl font-mono font-bold text-lg text-slate-800 mb-8" id="success-id"></p>
+                
+                <div id="printer-warning" style="display: none;" class="bg-red-50 border-2 border-red-200 p-6 rounded-2xl mb-8">
+                    <strong class="text-red-700 text-lg block mb-2"><i class="fa-solid fa-triangle-exclamation"></i> RECEIPT PRINTER OFFLINE</strong>
+                    <p class="text-red-600 text-sm mb-4">Please take a picture of this QR code with your smartphone.</p>
+                    <img id="fallback-qr-img" src="" alt="QR Code" class="mx-auto w-48 h-48 rounded-xl shadow-sm bg-white p-2 mb-2">
+                    <code id="fallback-qr" class="text-xs text-slate-500 break-all block"></code>
+                </div>
+
+                <button class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 px-12 rounded-2xl shadow-lg transition-all text-lg" onclick="nav('page-screensaver')">DONE (Next User)</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODALS -->
+    <!-- Modal 1: Entry Choice -->
+    <div id="modal-id-selector">
+        <div class="bg-white rounded-[2rem] p-8 shadow-2xl max-w-md w-full border border-slate-100 text-center">
+            <div class="h-16 w-16 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-teal-100 shadow-inner">
+                <i class="fa-solid fa-fingerprint"></i>
+            </div>
+            <h4 class="heading-font text-xl font-extrabold text-slate-800 mb-2">Choose Application Method</h4>
+            <p class="text-slate-500 text-sm mb-6 leading-relaxed">Choose whether you want to scan your local ID for automatic form filling or type your details manually.</p>
+            
+            <div class="grid grid-cols-1 gap-4">
+                <button onclick="chooseAIScan('National_ID')" class="group bg-slate-50 hover:bg-teal-50 border-2 border-slate-200/60 hover:border-teal-500 p-4 rounded-2xl text-left flex items-center space-x-4 transition-all">
+                    <div class="bg-teal-100 text-teal-700 p-2.5 rounded-xl"><i class="fa-solid fa-hotel"></i></div>
+                    <div>
+                        <strong class="font-bold text-slate-800 block text-sm">National ID / PhilSys Card</strong>
+                        <span class="text-xs text-slate-400">Official Philippine ID</span>
+                    </div>
+                </button>
+
+                <button onclick="chooseAIScan('PhilHealth')" class="group bg-slate-50 hover:bg-teal-50 border-2 border-slate-200/60 hover:border-teal-500 p-4 rounded-2xl text-left flex items-center space-x-4 transition-all">
+                    <div class="bg-teal-100 text-teal-700 p-2.5 rounded-xl"><i class="fa-solid fa-address-card"></i> </div>
+                    <div>
+                        <strong class="font-bold text-slate-800 block text-sm">PhilHealth Member ID</strong>
+                        <span class="text-xs text-slate-400">Health Insurance Card</span>
+                    </div>
+                </button>
+
+                <button onclick="proceedToForm()" class="group bg-emerald-50 hover:bg-emerald-100 border-2 border-slate-200/60 hover:border-emerald-500 p-4 rounded-2xl text-left flex items-center space-x-4 transition-all">
+                    <div class="bg-emerald-200 text-emerald-800 p-2.5 rounded-xl"><i class="fa-solid fa-keyboard text-lg"></i></div>
+                    <div>
+                        <strong class="font-bold text-slate-800 block text-sm">Enter Manually</strong>
+                        <span class="text-xs text-slate-500">Manual Input via Keyboard</span>
+                    </div>
+                </button>
+                
+                <button onclick="closeChoiceModals()" class="text-xs text-slate-400 hover:text-slate-600 font-bold mt-2 py-2">Go Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Camera Scan Modal -->
+    <div id="camera-modal">
+        <div class="bg-white rounded-[2rem] p-8 shadow-2xl max-w-lg w-full text-center border border-slate-100">
+            <h2 class="heading-font text-2xl font-extrabold text-slate-800 mb-2" id="camera-title">Scan ID</h2>
+            <p id="camera-instructions" class="text-red-500 font-bold mb-6 text-sm bg-red-50 py-2 px-4 rounded-xl"></p>
+            
+            <video id="webcam-video" autoplay playsinline class="w-full rounded-2xl shadow-inner border-4 border-slate-100 bg-black h-64 object-cover mb-6"></video>
+            <canvas id="webcam-canvas" style="display:none;"></canvas>
+            
+            <button class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl shadow-lg text-lg mb-3 transition-all" onclick="captureAndProcessID()">Take Picture & Process</button>
+            <button class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-2xl transition-all" onclick="closeCameraModal()">Cancel</button>
+            <p id="camera-status" class="text-teal-700 font-bold mt-4 h-6 text-sm"></p>
+        </div>
+    </div>
+
+    <!-- BEAUTIFUL CUSTOM MESSAGE BOX (For overriding alerts) -->
+    <div id="custom-message-box" style="display: none;">
+        <div class="bg-white rounded-[2.5rem] p-8 shadow-2xl max-w-sm w-full border border-slate-100 text-center transform transition-all scale-100">
+            <div id="msg-box-icon-container" class="h-16 w-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-blue-100 shadow-inner">
+                <i id="msg-box-icon" class="fa-solid fa-circle-info"></i>
+            </div>
+            <h4 id="msg-box-title" class="heading-font text-xl font-extrabold text-slate-800 mb-2">Notification</h4>
+            <p id="msg-box-text" class="text-slate-500 text-sm mb-6 leading-relaxed">System Message</p>
+            <button onclick="closeMessageBox()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl transition-all">Understood</button>
+        </div>
+    </div>
+
+       <!-- NEW ADDED FEATURES (Translations, AI Enhancers, Custom Alerts, Sounds, Live Screensaver Time) -->
+    <script id="feature-additions">
+        // 1. SOUND EFFECTS (Web Audio API Local)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'tap') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.05);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'error') {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'success') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+                oscillator.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // Attach tap sound to all buttons across the document
+        document.addEventListener('click', (e) => {
+            if(e.target.closest('button') || e.target.closest('.screensaver-action')) {
+                playSound('tap');
+            }
+        });
+
+        // 2. ENGLISH AND TAGALOG TRANSLATION ENGINE
+        let kioskLanguage = "en";
+        const TRANSLATIONS = {
+            en: {
+                welcome: "Touch Screen to Begin",
+                subwelcome: "Request, review, and print receipts for Barangay Documents instantly.",
+                selectTitle: "Select Document Type",
+                clearanceTitle: "Barangay Clearance",
+                clearanceDesc: "Residency, travel, and moral standing clearance.",
+                indigencyTitle: "Certificate of Indigency",
+                indigencyDesc: "For low-income financial assistance needs.",
+                residencyTitle: "Certificate of Residency",
+                residencyDesc: "Proof of address and long-term residency.",
+                businessTitle: "Barangay Business Permit",
+                businessDesc: "License permit to run a business in Sto. Niño.",
+                screensaverBtn: "Screensaver",
+                modeIndicator: "English Mode"
+            },
+            ph: {
+                welcome: "Pindutin ang Screen upang Magsimula",
+                subwelcome: "Mabilis na makakuha at mag-print ng resibo para sa mga Dokumento ng Barangay.",
+                selectTitle: "Pumili ng Uri ng Dokumento",
+                clearanceTitle: "Barangay Clearance",
+                clearanceDesc: "Sertipiko ng paninirahan, paglalakbay, at mabuting asal.",
+                indigencyTitle: "Sertipiko ng Indigency",
+                indigencyDesc: "Para sa tulong-pinansyal sa mga may mababang kita.",
+                residencyTitle: "Sertipiko ng Paninirahan",
+                residencyDesc: "Katunayan ng tirahan at matagal na paninirahan.",
+                businessTitle: "Permit sa Negosyo",
+                businessDesc: "Lisensya para magpatakbo ng negosyo sa Sto. Niño.",
+                screensaverBtn: "Bumalik (Screensaver)",
+                modeIndicator: "Tagalog Mode"
+            }
+        };
+
+        window.toggleLanguage = function(lang) {
+            kioskLanguage = lang;
+            const btnEn = document.getElementById("lang-btn-en");
+            const btnPh = document.getElementById("lang-btn-ph");
+            
+            const baseClass = "px-5 py-2.5 rounded-2xl font-bold transition-all text-xs md:text-sm shadow-sm w-full sm:w-auto ";
+            if (lang === "en") {
+                btnEn.className = baseClass + "bg-teal-700 text-white border border-teal-700";
+                btnPh.className = baseClass + "bg-white/85 text-slate-700 border border-slate-200 hover:bg-white";
+            } else {
+                btnPh.className = baseClass + "bg-teal-700 text-white border border-teal-700";
+                btnEn.className = baseClass + "bg-white/85 text-slate-700 border border-slate-200 hover:bg-white";
+            }
+
+            const dict = TRANSLATIONS[lang];
+            document.getElementById("lang-welcome").innerText = dict.welcome;
+            document.getElementById("lang-subwelcome").innerText = dict.subwelcome;
+            document.getElementById("lang-select-title").innerText = dict.selectTitle;
+            document.getElementById("lang-clearance-title").innerText = dict.clearanceTitle;
+            document.getElementById("lang-clearance-desc").innerText = dict.clearanceDesc;
+            document.getElementById("lang-indigency-title").innerText = dict.indigencyTitle;
+            document.getElementById("lang-indigency-desc").innerText = dict.indigencyDesc;
+            document.getElementById("lang-residency-title").innerText = dict.residencyTitle;
+            document.getElementById("lang-residency-desc").innerText = dict.residencyDesc;
+            document.getElementById("lang-business-title").innerText = dict.businessTitle;
+            document.getElementById("lang-business-desc").innerText = dict.businessDesc;
+            document.getElementById("lang-screensaver-btn").innerText = dict.screensaverBtn;
+            document.getElementById("header-lang-text").innerText = dict.modeIndicator;
+        }
+
+        // 3. BEAUTIFUL CUSTOM MODALS (Overriding native browser alert for forms)
+        window.openMessageBox = function(title, message, type = 'info') {
+            const box = document.getElementById('custom-message-box');
+            const titleEl = document.getElementById('msg-box-title');
+            const textEl = document.getElementById('msg-box-text');
+            const iconContainer = document.getElementById('msg-box-icon-container');
+            const icon = document.getElementById('msg-box-icon');
+
+            titleEl.innerText = title;
+            textEl.innerText = message;
+
+            // Clear styling classes
+            iconContainer.className = "h-16 w-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border shadow-inner ";
+            icon.className = "fa-solid ";
+
+            if (type === 'success') {
+                iconContainer.className += "bg-emerald-50 text-emerald-600 border-emerald-100";
+                icon.className += "fa-circle-check";
+                playSound("success");
+            } else if (type === 'error') {
+                iconContainer.className += "bg-red-50 text-red-600 border-red-100";
+                icon.className += "fa-circle-xmark";
+                playSound("error");
+            } else {
+                iconContainer.className += "bg-blue-50 text-blue-600 border-blue-100";
+                icon.className += "fa-circle-info";
+                playSound("tap");
+            }
+
+            box.style.display = 'flex';
+        }
+
+        window.closeMessageBox = function() {
+            playSound("tap");
+            document.getElementById('custom-message-box').style.display = 'none';
+        }
+
+        // Override Native Alert to use Custom Message Box for validation
+        window.alert = function(msg) {
+            openMessageBox("Incomplete Field", msg, "error");
+        };
+
+        // 4. LIVE SCREENSAVER TIME & DATE EXTENSION
+        setInterval(() => {
+            const dateSpan = document.getElementById("screensaver-full-date");
+            const now = new Date();
+            const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+            if (dateSpan) dateSpan.innerText = now.toLocaleDateString('en-US', options);
+        }, 1000);
+
+
+        // 5. AI ASSISTANTS (Injected dynamically into script.js forms via MutationObserver)
+        window.enhancePurpose = function(inputId) {
+            playSound("tap");
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const originalVal = input.value.trim();
+            if (!originalVal) {
+                openMessageBox("AI Enhancer", "Please enter a basic purpose first (e.g. 'job', 'school') so we can improve it for you.", "info");
+                return;
+            }
+
+            let enhanced = originalVal;
+            const lowerOrig = originalVal.toLowerCase();
+            
+            if (lowerOrig.includes("job") || lowerOrig.includes("work") || lowerOrig.includes("employment")) {
+                enhanced = "For local employment and multi-agency career verification clearance";
+            } else if (lowerOrig.includes("school") || lowerOrig.includes("college") || lowerOrig.includes("study")) {
+                enhanced = "For scholarship enrollment, academic admission, and student record authentication";
+            } else if (lowerOrig.includes("id") || lowerOrig.includes("card") || lowerOrig.includes("passport")) {
+                enhanced = "For processing primary government-issued identity cards and passport application";
+            } else if (lowerOrig.includes("loan") || lowerOrig.includes("bank")) {
+                enhanced = "For loan clearance, opening personal bank account, and commercial financial compliance";
+            } else {
+                enhanced = `For official presentation: ${originalVal} (Barangay-endorsed validation purpose)`;
+            }
+
+            input.value = enhanced;
+            // Trigger KioskBoard to update internally if active
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            openMessageBox("AI Purpose Enhanced", `We've upgraded your purpose to sound more formal and officially accepted!`, "success");
+        }
+
+        window.analyzeBusinessName = function(inputId) {
+            playSound("tap");
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const name = input.value.trim();
+            if (!name) {
+                openMessageBox("AI Business Analyzer", "Please type a business name first so we can analyze it.", "info");
+                return;
+            }
+
+            let feedback = `The name "${name}" is highly unique and does not violate any local registered trademarks in Barangay Sto. Niño. Excellent branding potential!`;
+            openMessageBox("AI Branding Verification", feedback, "success");
+        }
+
+        // MutationObserver para bantayan kung nag-generate na ng dynamic form ang script.js
+        const formContainerObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.addedNodes.length > 0) {
+                    
+                    // Mag-inject ng AI Button kung may "Purpose of Request" na field
+                    const purposeInput = document.querySelector('input[data-key="Purpose of Request"]');
+                    if (purposeInput && !purposeInput.parentElement.querySelector('.ai-btn')) {
+                        purposeInput.id = "kiosk-purpose-input";
+                        const btn = document.createElement('button');
+                        btn.className = "ai-btn absolute right-3 top-3 text-indigo-500 hover:text-indigo-700 bg-indigo-50 px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 z-10";
+                        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> AI Enhance';
+                        btn.onclick = (e) => { e.preventDefault(); enhancePurpose('kiosk-purpose-input'); };
+                        purposeInput.parentElement.appendChild(btn);
+                    }
+
+                    // Mag-inject ng AI Button kung may "Business Name" na field
+                    const bNameInput = document.querySelector('input[data-key="Business Name"]');
+                    if (bNameInput && !bNameInput.parentElement.querySelector('.ai-btn')) {
+                        bNameInput.id = "kiosk-business-name-input";
+                        const btn = document.createElement('button');
+                        btn.className = "ai-btn absolute right-3 top-3 text-amber-500 hover:text-amber-700 bg-amber-50 px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 z-10";
+                        btn.innerHTML = '<i class="fa-solid fa-chart-line"></i> Analyze';
+                        btn.onclick = (e) => { e.preventDefault(); analyzeBusinessName('kiosk-business-name-input'); };
+                        bNameInput.parentElement.appendChild(btn);
+                    }
+                }
+            });
+        });
+        
+        // Simulan bantayan ang Dynamic form Container
+        formContainerObserver.observe(document.getElementById('dynamic-fields'), { childList: true, subtree: true });
+    </script>
+
+    <script src="kioskboard-2.3.0.min.js"></script>
+    <script src="script.js"></script>
+    <script src="dist/js/FUNCTION.JS"></script>
+    
+</body>
+</html>
