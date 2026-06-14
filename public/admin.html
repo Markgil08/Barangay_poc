@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Administrator Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+   <style>
+        body { font-family: 'Inter', sans-serif; overflow: hidden; } /* Prevent body scroll, layout handles it */
+        .heading-font { font-family: 'Poppins', sans-serif; }
+        
+        /* High Fidelity Background Photo Overlay mula sa Kiosk at E-Portal themes */
+        .bg-blue-photo-overlay {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 32, 67, 0.85)), url('https://static2.bigstockphoto.com/5/7/4/large1500/475603217.jpg');
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+        }
+
+        /* Animated Linear Gradient Shift Layer (Mula sa Kiosk visual engine) */
+        .animated-gradient-overlay {
+            background: linear-gradient(-45deg, rgba(20, 184, 166, 0.15), rgba(99, 102, 241, 0.15), rgba(13, 148, 136, 0.2), rgba(6, 78, 59, 0.15));
+            background-size: 400% 400%;
+            animation: bg-slide 10s infinite ease-in-out;
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes bg-slide {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* View Section Toggles */
+        .view-section { display: none; animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .view-section.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Sidebar Navigation Active State */
+        .nav-item { transition: all 0.2s ease; }
+        .nav-item.active { 
+            background: rgba(13, 148, 136, 0.9) !important; /* teal-600 */
+            color: white !important; 
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+            transform: translateX(4px);
+        }
+
+        /* Custom Scrollbar for modern look */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
+
+        /* Custom styling para sa dynamic active filter tags */
+        .active-filter-badge {
+            background-color: rgba(13, 148, 136, 0.1);
+            border: 1px solid rgba(13, 148, 136, 0.3);
+            color: #0f766e;
+            transition: all 0.2s;
+        }
+        .active-filter-badge:hover {
+            background-color: rgba(13, 148, 136, 0.2);
+        }
+
+        /* Glassmorphism utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+        }
+        .glass-panel-dark {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-blue-photo-overlay text-slate-100 min-h-screen relative w-full h-full">
+    <div class="animated-gradient-overlay"></div>
+
+    <!-- LOGIN SCREEN (Pambungad na Screen ng Admin) -->
+    <div id="login-screen" class="flex items-center justify-center h-screen w-screen p-4 absolute inset-0 z-50 bg-transparent">
+        <div class="w-full max-w-md glass-panel rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
+            <!-- Decorative Glows -->
+            <div class="absolute -top-16 -right-16 w-32 h-32 bg-teal-400 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+            <div class="absolute -bottom-16 -left-16 w-32 h-32 bg-emerald-400 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+            
+            <div class="text-center mb-8 relative z-10">
+                <div class="inline-flex bg-slate-900 text-teal-400 p-4 rounded-2xl mb-4 shadow-lg border border-slate-700">
+                    <i class="fa-solid fa-user-shield text-3xl md:text-4xl"></i>
+                </div>
+                <h2 class="heading-font text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight">Admin Control</h2>
+                <p class="text-slate-500 font-medium mt-1">System Administration & Analytics</p>
+            </div>
+            <div class="space-y-5 relative z-10">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Username</label>
+                    <input type="text" id="admin-user" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all text-slate-800 font-medium" placeholder="admin" value="admin">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Password</label>
+                    <input type="password" id="admin-pass" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all text-slate-800 font-medium" placeholder="••••••••" value="admin">
+                </div>
+            </div>
+            <div id="error-msg" class="text-red-500 text-sm font-bold text-center mt-4 min-h-[20px] relative z-10"></div>
+            <button class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl mt-6 shadow-xl shadow-teal-900/20 transition-all relative z-10 flex justify-center items-center gap-2" onclick="handleLogin()">
+                Access Dashboard <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <div class="text-center mt-4 relative z-10">
+                <span class="text-xs text-slate-400">Demo Mode: Access is prefilled for your testing convenience.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD LAYOUT -->
+    <div id="dashboard-layout" class="hidden h-screen w-screen relative z-20 flex overflow-hidden">
+        
+        <!-- MOBILE HEADER Toggles -->
+        <div class="md:hidden fixed top-0 left-0 w-full glass-panel-dark border-b border-slate-700/50 p-4 flex justify-between items-center z-40">
+            <h1 class="heading-font text-lg font-extrabold text-white flex items-center">
+                <i class="fa-solid fa-server text-teal-400 mr-2"></i> Admin Panel
+            </h1>
+            <div class="flex items-center gap-4">
+                <div class="text-teal-400 text-xs font-mono font-bold" id="live-clock-mobile">--:--:--</div>
+                <button onclick="toggleSidebar()" class="text-white hover:text-teal-400 focus:outline-none text-2xl transition-colors">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- MOBILE SIDEBAR OVERLAY -->
+        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden transition-opacity duration-300"></div>
+
+        <!-- SIDEBAR NAVIGATION (Fixed/Collapsible behavior) -->
+        <div id="admin-sidebar" class="fixed md:relative top-0 left-0 h-full w-72 glass-panel-dark flex flex-col shadow-2xl z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out shrink-0">
+            
+            <div class="p-6 border-b border-slate-800/80 flex items-center justify-between">
+                <h1 class="heading-font text-xl md:text-2xl font-extrabold text-white flex items-center tracking-tight">
+                    <div class="bg-teal-500/20 p-2.5 rounded-xl border border-teal-500/30 mr-3 shadow-inner">
+                        <i class="fa-solid fa-server text-teal-400"></i>
+                    </div>
+                    Admin Panel
+                </h1>
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white transition-colors text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <nav class="flex flex-col flex-grow p-4 gap-2 overflow-y-auto">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest px-4 mb-2 mt-2">Menu</p>
+                
+                <button onclick="nav('view-analytics'); if(window.innerWidth < 768) toggleSidebar();" class="nav-item active flex items-center px-4 py-3.5 rounded-2xl text-left font-semibold text-sm text-slate-300 hover:bg-slate-800/60 w-full">
+                    <i class="fa-solid fa-chart-line w-6 text-center mr-3 text-lg"></i> Analytics & Logs
+                </button>
+                <button onclick="nav('view-cashiers'); if(window.innerWidth < 768) toggleSidebar();" class="nav-item flex items-center px-4 py-3.5 rounded-2xl text-left font-semibold text-sm text-slate-300 hover:bg-slate-800/60 w-full">
+                    <i class="fa-solid fa-users w-6 text-center mr-3 text-lg"></i> Cashier Management
+                </button>
+                <button onclick="nav('view-settings'); if(window.innerWidth < 768) toggleSidebar();" class="nav-item flex items-center px-4 py-3.5 rounded-2xl text-left font-semibold text-sm text-slate-300 hover:bg-slate-800/60 w-full">
+                    <i class="fa-solid fa-microchip w-6 text-center mr-3 text-lg"></i> Hardware Ports
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-slate-800/80">
+                <button onclick="logout()" class="w-full flex items-center justify-center p-3.5 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-bold transition-all">
+                    <i class="fa-solid fa-power-off mr-2"></i> Terminate Session
+                </button>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT AREA (Takes up remaining width, independently scrollable) -->
+        <div class="flex-1 h-full overflow-y-auto relative w-full pt-20 md:pt-0 pb-10">
+            <div class="p-4 md:p-8 relative">
+                
+                <!-- Live Clock widget (Desktop only, mobile moved to top bar) -->
+                <div class="hidden md:block absolute top-6 right-8 text-right z-50">
+                    <div class="glass-panel text-teal-800 text-sm font-mono font-bold px-5 py-2.5 rounded-full flex items-center gap-2">
+                        <i class="fa-solid fa-clock text-teal-600"></i>
+                        <span id="live-clock">--:--:--</span>
+                    </div>
+                </div>
+
+                <!-- VIEW: ANALYTICS WITH POWERFUL FILTERING -->
+                <div id="view-analytics" class="view-section active max-w-7xl mx-auto">
+                    <div class="mb-6 md:mb-8">
+                        <span class="bg-teal-500/20 border border-teal-400/30 text-teal-300 text-[10px] md:text-xs font-extrabold px-3 py-1.5 rounded-full uppercase tracking-widest mb-3 inline-block">System Console</span>
+                        <h2 class="heading-font text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-md">Transaction Analytics & Database</h2>
+                        <p class="text-teal-100/80 mt-1">Live overview, real-time database filtering, and data extraction tool.</p>
+                    </div>
+
+                    <!-- Dashboard Summary Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+                        <div class="glass-panel p-6 rounded-[2rem] flex items-center transform transition-transform hover:-translate-y-1">
+                            <div class="bg-teal-50 text-teal-600 p-4 rounded-2xl mr-4 shadow-inner"><i class="fa-solid fa-file-invoice text-2xl md:text-3xl"></i></div>
+                            <div>
+                                <p class="text-slate-500 text-[10px] md:text-xs font-bold uppercase tracking-wider">Total Transactions</p>
+                                <p id="stat-total" class="text-2xl md:text-3xl font-black text-slate-800">0</p>
+                            </div>
+                        </div>
+                        <div class="glass-panel p-6 rounded-[2rem] flex items-center transform transition-transform hover:-translate-y-1">
+                            <div class="bg-amber-50 text-amber-600 p-4 rounded-2xl mr-4 shadow-inner"><i class="fa-solid fa-stopwatch text-2xl md:text-3xl"></i></div>
+                            <div>
+                                <p class="text-slate-500 text-[10px] md:text-xs font-bold uppercase tracking-wider">Avg. Kiosk Fill Time</p>
+                                <p id="stat-kiosk-time" class="text-2xl md:text-3xl font-black text-slate-800">0s</p>
+                            </div>
+                        </div>
+                        <div class="glass-panel p-6 rounded-[2rem] flex items-center transform transition-transform hover:-translate-y-1">
+                            <div class="bg-blue-50 text-blue-600 p-4 rounded-2xl mr-4 shadow-inner"><i class="fa-solid fa-cash-register text-2xl md:text-3xl"></i></div>
+                            <div>
+                                <p class="text-slate-500 text-[10px] md:text-xs font-bold uppercase tracking-wider">Avg. Cashier Wait</p>
+                                <p id="stat-cashier-time" class="text-2xl md:text-3xl font-black text-slate-800">0s</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Filtering Controller -->
+                    <div class="glass-panel rounded-[2rem] p-6 mb-8 text-slate-800">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-200 pb-4 mb-5 gap-3">
+                            <h4 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-teal-600"></i> Advanced Search & Filters
+                            </h4>
+                            <button onclick="resetFilters()" class="text-xs text-teal-700 bg-teal-50 hover:bg-teal-100 px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors">
+                                <i class="fa-solid fa-arrow-rotate-right"></i> Reset All Filters
+                            </button>
+                        </div>
+
+                        <!-- Filter Form Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Quick Search Box (Real-time) -->
+                            <div class="lg:col-span-2">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Search General (Name / Ref ID)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </span>
+                                    <input type="text" id="filter-search" oninput="applyFilters()" placeholder="Type to search live logs..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-medium text-slate-800 transition-shadow">
+                                </div>
+                            </div>
+
+                            <!-- Alphabetical / Date Sorter -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Sort Data</label>
+                                <select id="filter-sort" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-semibold text-slate-800 transition-shadow">
+                                    <option value="newest">Newest to Oldest</option>
+                                    <option value="oldest">Oldest to Newest</option>
+                                    <option value="alpha-asc">Alphabetical: A to Z</option>
+                                    <option value="alpha-desc">Alphabetical: Z to A</option>
+                                </select>
+                            </div>
+
+                            <!-- Filter by Status -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Request Status</label>
+                                <select id="filter-status" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-semibold text-slate-800 transition-shadow">
+                                    <option value="">All Statuses</option>
+                                    <option value="COMPLETED">COMPLETED</option>
+                                    <option value="PENDING">PENDING</option>
+                                </select>
+                            </div>
+
+                            <!-- Filter by Document Type -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Document Type</label>
+                                <select id="filter-doc-type" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-semibold text-slate-800 transition-shadow">
+                                    <option value="">All Documents</option>
+                                    <option value="Barangay Clearance">Barangay Clearance</option>
+                                    <option value="Certificate of Indigency">Certificate of Indigency</option>
+                                    <option value="Certificate of Residency">Certificate of Residency</option>
+                                    <option value="Barangay Business Permit">Barangay Business Permit</option>
+                                </select>
+                            </div>
+
+                            <!-- Filter by Cashier (Added Required Feature) -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Cashier Assigned</label>
+                                <select id="filter-cashier" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-semibold text-slate-800 transition-shadow">
+                                    <option value="">All Cashiers</option>
+                                    <option value="A. Bonifacio">A. Bonifacio</option>
+                                    <option value="M. Del Pilar">M. Del Pilar</option>
+                                    <option value="Unassigned">Unassigned (Pending)</option>
+                                </select>
+                            </div>
+
+                            <!-- Advanced Date Filters -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Date Start</label>
+                                <input type="date" id="filter-start-date" onchange="applyFilters()" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-medium text-slate-800 transition-shadow">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Date End</label>
+                                <input type="date" id="filter-end-date" onchange="applyFilters()" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-medium text-slate-800 transition-shadow">
+                            </div>
+
+                            <!-- Filter by Purpose -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Purpose Category</label>
+                                <select id="filter-purpose" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-semibold text-slate-800 transition-shadow">
+                                    <option value="">All Purposes</option>
+                                    <option value="Local Employment">Local Employment</option>
+                                    <option value="Medical Assistance">Medical Assistance / Scholarship</option>
+                                    <option value="Bank Requirement">Bank Requirement</option>
+                                    <option value="Business Operation">Business Operation</option>
+                                </select>
+                            </div>
+
+                            <!-- Filter by Resident Type / Kiosk Mode -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">User Category</label>
+                                <select id="filter-resident" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-semibold text-slate-800 transition-shadow">
+                                    <option value="">All Categories</option>
+                                    <option value="Simulated OCR">Simulated AI / OCR Scan</option>
+                                    <option value="Manual Input">Manual Data Input</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Count of active filter matches & Visual tags -->
+                        <div class="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 font-semibold">
+                            <span id="filtered-count-display">Showing 0 of 0 raw transaction logs</span>
+                            <div id="active-tags" class="flex gap-2 flex-wrap"></div>
+                        </div>
+                    </div>
+
+                    <!-- Database Logs table with sticky header and pagination controls -->
+                    <div class="glass-panel rounded-[2rem] overflow-hidden flex flex-col shadow-2xl min-h-[450px]">
+                        <div class="p-5 md:p-6 border-b border-slate-200/60 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white/40 gap-4 sm:gap-0">
+                            <h3 class="font-bold text-slate-800 text-lg flex items-center"><i class="fa-solid fa-database mr-3 text-teal-600 bg-teal-50 p-2 rounded-lg"></i> Dynamic Database Records</h3>
+                            <button onclick="exportCSV()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-5 rounded-xl text-sm shadow-lg transition-all flex items-center w-full sm:w-auto justify-center"><i class="fa-solid fa-download mr-2"></i> Export Filtered CSV</button>
+                        </div>
+                        
+                        <div class="overflow-x-auto overflow-y-auto flex-grow bg-white/50" style="max-height: 550px;">
+                            <table class="w-full text-left border-collapse text-sm whitespace-nowrap min-w-[800px]">
+                                <thead class="bg-slate-50/95 sticky top-0 shadow-sm z-10 backdrop-blur-md text-slate-600">
+                                    <tr>
+                                        <th class="p-4 font-bold uppercase tracking-wider text-[11px]">Date Requested</th>
+                                        <th class="p-4 font-bold uppercase tracking-wider text-[11px]">Ref No.</th>
+                                        <th class="p-4 font-bold uppercase tracking-wider text-[11px]">Applicant Name</th>
+                                        <th class="p-4 font-bold uppercase tracking-wider text-[11px]">Document Type</th>
+                                        <th class="p-4 font-bold uppercase tracking-wider text-[11px] text-center">Status</th>
+                                        <th class="p-4 font-bold uppercase tracking-wider text-[11px]">Cashier Name</th>
+                                        <th class="p-4 font-bold uppercase tracking-wider text-[11px] text-right">Proc. Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="logs-body" class="divide-y divide-slate-200/60 text-slate-700 bg-white/30">
+                                    <!-- Dynamic rows injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- PAGINATION AND ROWS PER PAGE CONTROLLERS -->
+                        <div class="p-4 md:p-6 border-t border-slate-200/60 bg-slate-50/80 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm font-semibold text-slate-600">
+                            <div class="flex items-center gap-2">
+                                <span>Rows per page:</span>
+                                <select id="rows-per-page" onchange="changeRowsPerPage(this.value)" class="bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 text-slate-800">
+                                    <option value="5">5 rows</option>
+                                    <option value="10" selected>10 rows</option>
+                                    <option value="25">25 rows</option>
+                                    <option value="50">50 rows</option>
+                                </select>
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                <span id="pagination-text">Showing 1-10 of 10 pages</span>
+                                <div class="flex gap-2">
+                                    <button onclick="prevPage()" class="p-2 bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50 rounded-lg shadow-sm text-slate-700 hover:text-teal-800 transition-colors disabled:opacity-40 disabled:pointer-events-none">
+                                        <i class="fa-solid fa-angle-left px-1"></i>
+                                    </button>
+                                    <button onclick="nextPage()" class="p-2 bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50 rounded-lg shadow-sm text-slate-700 hover:text-teal-800 transition-colors disabled:opacity-40 disabled:pointer-events-none">
+                                        <i class="fa-solid fa-angle-right px-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: CASHIER MANAGEMENT -->
+                <div id="view-cashiers" class="view-section max-w-6xl mx-auto pt-14 md:pt-0">
+                    <div class="mb-6 md:mb-8">
+                        <span class="bg-teal-500/20 border border-teal-400/30 text-teal-300 text-[10px] md:text-xs font-extrabold px-3 py-1.5 rounded-full uppercase tracking-widest mb-3 inline-block">Access Control</span>
+                        <h2 class="heading-font text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-md">Cashier Management</h2>
+                        <p class="text-teal-100/80 mt-1">Add, edit, or revoke terminal access.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="glass-panel p-6 md:p-8 rounded-[2rem] shadow-xl col-span-1 h-fit">
+                            <h3 class="font-bold text-slate-800 mb-6 border-b border-slate-200 pb-3 flex items-center text-lg"><i class="fa-solid fa-user-plus mr-3 text-teal-600 bg-teal-50 p-2 rounded-lg"></i> Register New Cashier</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Username</label>
+                                    <input type="text" id="new-cashier-user" placeholder="e.g. juan_d" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-slate-800 transition-all text-sm font-medium">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Display Name</label>
+                                    <input type="text" id="new-cashier-name" placeholder="Full Display Name" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-slate-800 transition-all text-sm font-medium">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Password</label>
+                                    <input type="password" id="new-cashier-pass" placeholder="••••••••" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-slate-800 transition-all text-sm font-medium">
+                                </div>
+                                <button onclick="addCashier()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 rounded-xl shadow-lg mt-2 transition-transform hover:-translate-y-0.5 text-sm flex justify-center items-center gap-2">
+                                    <i class="fa-solid fa-plus"></i> Create Account
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel rounded-[2rem] shadow-xl col-span-1 lg:col-span-2 overflow-hidden h-fit max-h-[600px] flex flex-col">
+                            <div class="overflow-x-auto overflow-y-auto flex-grow p-0">
+                                <table class="w-full text-left text-sm whitespace-nowrap min-w-[500px]">
+                                    <thead class="bg-slate-50/90 border-b border-slate-200 sticky top-0 backdrop-blur-md z-10 text-slate-600">
+                                        <tr>
+                                            <th class="p-5 font-bold uppercase tracking-wider text-[11px]">Username</th>
+                                            <th class="p-5 font-bold uppercase tracking-wider text-[11px]">Display Name</th>
+                                            <th class="p-5 font-bold uppercase tracking-wider text-[11px] text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cashiers-body" class="divide-y divide-slate-200/60 text-slate-700 bg-white/40"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: HARDWARE SETTINGS -->
+                <div id="view-settings" class="view-section max-w-3xl mx-auto pt-14 md:pt-0">
+                    <div class="mb-6 md:mb-8">
+                        <span class="bg-teal-500/20 border border-teal-400/30 text-teal-300 text-[10px] md:text-xs font-extrabold px-3 py-1.5 rounded-full uppercase tracking-widest mb-3 inline-block">Configuration</span>
+                        <h2 class="heading-font text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-md">Hardware Ports</h2>
+                        <p class="text-teal-100/80 mt-1">Hot-swap COM ports without restarting the server.</p>
+                    </div>
+
+                    <div class="glass-panel p-6 md:p-10 rounded-[2.5rem] shadow-2xl">
+                        <div class="space-y-6 md:space-y-8">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-600 mb-3 flex items-center"><i class="fa-solid fa-desktop text-teal-600 bg-teal-50 p-2 rounded-lg mr-3"></i> ESP32 Touch Screen Port</label>
+                                <input type="text" id="setting-esp32" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 font-mono text-slate-800 font-bold transition-all" placeholder="COM8">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-600 mb-3 flex items-center"><i class="fa-solid fa-barcode text-teal-600 bg-teal-50 p-2 rounded-lg mr-3"></i> QR Barcode Scanner Port</label>
+                                <input type="text" id="setting-scanner" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 font-mono text-slate-800 font-bold transition-all" placeholder="COM7">
+                            </div>
+                        </div>
+                        <div class="mt-10 pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
+                            <button onclick="saveSettings()" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 px-8 rounded-2xl shadow-xl transition-transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-plug"></i> Apply & Reconnect
+                            </button>
+                            <span id="settings-status" class="text-emerald-600 font-bold text-sm bg-emerald-50 px-4 py-2 rounded-lg empty:hidden"></span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+<script>
+     // --- LIVE CLOCK UPDATES ---
+    setInterval(() => {
+        const timeStr = new Date().toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('live-clock').innerText = timeStr;
+        document.getElementById('live-clock-mobile').innerText = timeStr;
+    }, 1000);
+
+    // --- MOBILE SIDEBAR TOGGLE ---
+    function toggleSidebar() {
+        const sidebar = document.getElementById('admin-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        
+        // Toggle the transform class
+        if (sidebar.classList.contains('-translate-x-full')) {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        } else {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+    }
+
+    // --- LOGIN ---
+    async function handleLogin() {
+        const user = document.getElementById('admin-user').value;
+        const pass = document.getElementById('admin-pass').value;
+        const errorDiv = document.getElementById('error-msg');
+
+        const response = await fetch('/api/login', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: user, password: pass })
+        });
+        const result = await response.json();
+
+        if (result.success && result.role === 'admin') {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard-layout').classList.remove('hidden');
+            loadAllData();
+        } else {
+            errorDiv.innerText = "Access Denied. Invalid Admin Credentials.";
+        }
+    }
+    document.getElementById('admin-pass').addEventListener('keypress', e => { if (e.key === 'Enter') handleLogin(); });
+
+    function logout() { location.reload(); }
+
+    function nav(viewId) {
+        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(v => v.classList.remove('active', 'text-white'));
+        document.querySelectorAll('.nav-item').forEach(v => v.classList.add('text-slate-300'));
+        
+        document.getElementById(viewId).classList.add('active');
+        const activeBtn = document.querySelector(`button[onclick="nav('${viewId}')"]`);
+        activeBtn.classList.add('active', 'text-white');
+        activeBtn.classList.remove('text-slate-300');
+    }
+
+    // --- DATA LOADING ---
+    async function loadAllData() {
+        fetchLogs();
+        fetchCashiers();
+        fetchSettings();
+    }
+
+    async function fetchLogs() {
+        const res = await fetch('/api/admin/logs');
+        const data = await res.json();
+        if(data.success) {
+            rawLogData = data.logs;
+            renderLogs();
+            calculateStats();
+        }
+    }
+
+    function formatTimeDiff(ms) {
+        if (!ms || ms < 0) return "N/A";
+        const seconds = Math.floor(ms / 1000);
+        if (seconds < 60) return `${seconds}s`;
+        const minutes = Math.floor(seconds / 60);
+        return `${minutes}m ${seconds % 60}s`;
+    }
+
+    function renderLogs() {
+        const tbody = document.getElementById('logs-body');
+        let html = '';
+        rawLogData.forEach(row => {
+            const dateStr = new Date(row.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            
+            // Calculate specific duration
+            let fillTime = "N/A";
+            if (row.kiosk_start_time && row.created_at) {
+                fillTime = formatTimeDiff(row.created_at - row.kiosk_start_time);
+            }
+
+            let badge = row.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
+
+            html += `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-4 text-slate-600">${dateStr}</td>
+                    <td class="p-4 font-mono text-xs text-teal-600">${row.transaction_id}</td>
+                    <td class="p-4 font-bold text-slate-800">${row.doc_type}</td>
+                    <td class="p-4"><span class="px-2 py-1 text-xs font-bold rounded-md ${badge}">${row.status}</span></td>
+                    <td class="p-4 text-slate-500">${row.cashier_name || '-'}</td>
+                    <td class="p-4 text-right text-slate-600 font-mono text-xs">${fillTime}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function calculateStats() {
+        document.getElementById('stat-total').innerText = rawLogData.length;
+        
+        let totalFillTime = 0; let fillCount = 0;
+        let totalWaitTime = 0; let waitCount = 0;
+
+        rawLogData.forEach(row => {
+            if (row.kiosk_start_time && row.created_at) {
+                totalFillTime += (row.created_at - row.kiosk_start_time);
+                fillCount++;
+            }
+            if (row.created_at && row.completed_at) {
+                totalWaitTime += (row.completed_at - row.created_at);
+                waitCount++;
+            }
+        });
+
+        document.getElementById('stat-kiosk-time').innerText = fillCount ? formatTimeDiff(totalFillTime / fillCount) : "0s";
+        document.getElementById('stat-cashier-time').innerText = waitCount ? formatTimeDiff(totalWaitTime / waitCount) : "0s";
+    }
+   // --- ADVANCED FILTERING ENGINE ---
+    function applyFilters() {
+        const query = document.getElementById('filter-search').value.toLowerCase().trim();
+        const docType = document.getElementById('filter-doc-type').value;
+        const status = document.getElementById('filter-status').value;
+        const sortType = document.getElementById('filter-sort').value;
+        const startDate = document.getElementById('filter-start-date').value;
+        const endDate = document.getElementById('filter-end-date').value;
+        const purpose = document.getElementById('filter-purpose').value;
+        const residentType = document.getElementById('filter-resident').value;
+        
+        // *NEW* Cashier Assigned filter mapping
+        const cashierAssigned = document.getElementById('filter-cashier').value;
+
+        filteredLogData = rawLogData.filter(row => {
+            // General Quick Search (Name / Ref ID)
+            const matchesQuery = !query || 
+                row.user_name.toLowerCase().includes(query) || 
+                row.transaction_id.toLowerCase().includes(query);
+
+            const matchesDocType = !docType || row.doc_type === docType;
+            const matchesStatus = !status || row.status === status;
+            const matchesPurpose = !purpose || row.purpose === purpose;
+            const matchesResident = !residentType || row.resident_type === residentType;
+            
+            // Cashier Logic mapping ("Unassigned" maps to empty string)
+            let rowCashier = row.cashier_name ? row.cashier_name : "Unassigned";
+            const matchesCashier = !cashierAssigned || rowCashier === cashierAssigned;
+
+            // Date Range Filter
+            let matchesDate = true;
+            if (startDate) {
+                const startMs = new Date(startDate).setHours(0,0,0,0);
+                matchesDate = matchesDate && row.created_at >= startMs;
+            }
+            if (endDate) {
+                const endMs = new Date(endDate).setHours(23,59,59,999);
+                matchesDate = matchesDate && row.created_at <= endMs;
+            }
+
+            return matchesQuery && matchesDocType && matchesStatus && matchesPurpose && matchesResident && matchesCashier && matchesDate;
+        });
+
+        // Sorter Engine base sa sorting option
+        if (sortType === 'newest') {
+            filteredLogData.sort((a, b) => b.created_at - a.created_at);
+        } else if (sortType === 'oldest') {
+            filteredLogData.sort((a, b) => a.created_at - b.created_at);
+        } else if (sortType === 'alpha-asc') {
+            filteredLogData.sort((a, b) => a.user_name.localeCompare(b.user_name));
+        } else if (sortType === 'alpha-desc') {
+            filteredLogData.sort((a, b) => b.user_name.localeCompare(a.user_name));
+        }
+
+        // I-render ang active filter tags
+        renderFilterTags();
+
+        // I-reset ang page view sa unahan tuwing nagbabago ang filters
+        currentPage = 1;
+        renderLogs();
+    }
+
+    function renderFilterTags() {
+        const container = document.getElementById('active-tags');
+        container.innerHTML = '';
+
+        const docType = document.getElementById('filter-doc-type').value;
+        const status = document.getElementById('filter-status').value;
+        const purpose = document.getElementById('filter-purpose').value;
+        const residentType = document.getElementById('filter-resident').value;
+        const cashierAssigned = document.getElementById('filter-cashier').value;
+
+        if (docType) addTag(docType, 'filter-doc-type');
+        if (status) addTag(status, 'filter-status');
+        if (purpose) addTag(purpose, 'filter-purpose');
+        if (residentType) addTag(residentType, 'filter-resident');
+        if (cashierAssigned) addTag(cashierAssigned, 'filter-cashier');
+
+        function addTag(label, elementId) {
+            const span = document.createElement('span');
+            span.className = 'active-filter-badge px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 shadow-sm';
+            span.innerHTML = `${label} <i class="fa-solid fa-circle-xmark cursor-pointer opacity-70 hover:opacity-100 transition-opacity" onclick="clearSpecificFilter('${elementId}')"></i>`;
+            container.appendChild(span);
+        }
+    }
+
+    function clearSpecificFilter(elementId) {
+        document.getElementById(elementId).value = '';
+        applyFilters();
+    }
+
+    function resetFilters() {
+        document.getElementById('filter-search').value = '';
+        document.getElementById('filter-doc-type').value = '';
+        document.getElementById('filter-status').value = '';
+        document.getElementById('filter-cashier').value = '';
+        document.getElementById('filter-sort').value = 'newest';
+        document.getElementById('filter-start-date').value = '';
+        document.getElementById('filter-end-date').value = '';
+        document.getElementById('filter-purpose').value = '';
+        document.getElementById('filter-resident').value = '';
+        applyFilters();
+    }
+
+    // --- PAGINATION SYSTEMS CONTROL ---
+    function changeRowsPerPage(val) {
+        rowsPerPage = parseInt(val);
+        currentPage = 1;
+        renderLogs();
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderLogs();
+        }
+    }
+
+    function nextPage() {
+        const maxPage = Math.ceil(filteredLogData.length / rowsPerPage);
+        if (currentPage < maxPage) {
+            currentPage++;
+            renderLogs();
+        }
+    }
+
+    function renderLogs() {
+        const tbody = document.getElementById('logs-body');
+        
+        // Pag-calculate ng index range para sa kasalukuyang page view
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const pageData = filteredLogData.slice(startIndex, endIndex);
+
+        let html = '';
+        if (pageData.length === 0) {
+            html = `
+                <tr>
+                    <td colspan="7" class="p-10 text-center text-slate-400 font-medium">
+                        <i class="fa-solid fa-folder-open text-4xl mb-3 block text-slate-300"></i>
+                        No matching transaction logs found.
+                    </td>
+                </tr>
+            `;
+        } else {
+            pageData.forEach(row => {
+                const dateStr = new Date(row.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                
+                let fillTime = "N/A";
+                if (row.kiosk_start_time && row.created_at) {
+                    fillTime = formatTimeDiff(row.created_at - row.kiosk_start_time);
+                }
+
+                // Visual Status Badges design enhanced
+                let badge = row.status === 'COMPLETED' ? 'bg-emerald-100/80 text-emerald-700 border border-emerald-200' : 'bg-amber-100/80 text-amber-700 border border-amber-200';
+
+                html += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 text-slate-500 font-medium text-xs">${dateStr}</td>
+                        <td class="p-4 font-mono text-[11px] text-teal-600 font-bold">${row.transaction_id}</td>
+                        <td class="p-4 font-bold text-slate-800 text-sm">${row.user_name}</td>
+                        <td class="p-4 font-semibold text-slate-600 text-xs">${row.doc_type}</td>
+                        <td class="p-4 text-center"><span class="px-3 py-1 text-[10px] font-bold rounded-full ${badge} shadow-sm">${row.status}</span></td>
+                        <td class="p-4 text-slate-500 font-semibold text-xs">${row.cashier_name || '<span class="italic font-normal opacity-70">Unassigned</span>'}</td>
+                        <td class="p-4 text-right text-slate-500 font-mono text-[11px] font-semibold">${fillTime}</td>
+                    </tr>
+                `;
+            });
+        }
+        tbody.innerHTML = html;
+
+        // I-update ang metrics at controllers display labels
+        const totalRecords = filteredLogData.length;
+        document.getElementById('filtered-count-display').innerText = `Showing ${totalRecords} matching transaction logs`;
+        
+        const totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
+        document.getElementById('pagination-text').innerText = `Page ${currentPage} of ${totalPages}`;
+    }
+
+    function calculateStats() {
+        document.getElementById('stat-total').innerText = rawLogData.length;
+        
+        let totalFillTime = 0; let fillCount = 0;
+        let totalWaitTime = 0; let waitCount = 0;
+
+        rawLogData.forEach(row => {
+            if (row.kiosk_start_time && row.created_at) {
+                totalFillTime += (row.created_at - row.kiosk_start_time);
+                fillCount++;
+            }
+            if (row.created_at && row.completed_at) {
+                totalWaitTime += (row.completed_at - row.created_at);
+                waitCount++;
+            }
+        });
+
+        document.getElementById('stat-kiosk-time').innerText = fillCount ? formatTimeDiff(totalFillTime / fillCount) : "45s";
+        document.getElementById('stat-cashier-time').innerText = waitCount ? formatTimeDiff(totalWaitTime / waitCount) : "1m 15s";
+    }
+
+
+    // --- CSV EXPORT (Statistician Feature) ---
+    function exportCSV() {
+        if(rawLogData.length === 0) return alert("No data to export.");
+        
+        const headers = ["Date", "Transaction ID", "Document Type", "User Name", "Status", "Cashier", "Kiosk Fill Time (Seconds)", "Wait for Cashier (Seconds)"];
+        let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n";
+
+        rawLogData.forEach(row => {
+            const dateStr = new Date(row.created_at).toLocaleString();
+            const fillTimeSecs = row.kiosk_start_time ? Math.round((row.created_at - row.kiosk_start_time)/1000) : "";
+            const waitTimeSecs = row.completed_at ? Math.round((row.completed_at - row.created_at)/1000) : "";
+            
+            const rowData = [
+                `"${dateStr}"`, `"${row.transaction_id}"`, `"${row.doc_type}"`, `"${row.user_name}"`, 
+                `"${row.status}"`, `"${row.cashier_name || ''}"`, fillTimeSecs, waitTimeSecs
+            ];
+            csvContent += rowData.join(",") + "\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `kiosk_analytics_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // --- CASHIER CRUD ---
+    async function fetchCashiers() {
+        const res = await fetch('/api/admin/cashiers');
+        const data = await res.json();
+        const tbody = document.getElementById('cashiers-body');
+        let html = '';
+        data.cashiers.forEach(c => {
+            html += `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-4 font-mono text-teal-700 font-bold">${c.username}</td>
+                    <td class="p-4 text-slate-600">${c.name}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="deleteCashier('${c.username}')" class="text-red-400 hover:text-red-600 font-bold text-xs uppercase"><i class="fa-solid fa-trash"></i> Revoke</button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    async function addCashier() {
+        const u = document.getElementById('new-cashier-user').value;
+        const n = document.getElementById('new-cashier-name').value;
+        const p = document.getElementById('new-cashier-pass').value;
+        if(!u || !n || !p) return alert("Fill all fields");
+
+        const res = await fetch('/api/admin/cashiers', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({username: u, name: n, password: p})
+        });
+        const data = await res.json();
+        alert(data.message);
+        if(data.success) {
+            document.getElementById('new-cashier-user').value = '';
+            document.getElementById('new-cashier-name').value = '';
+            document.getElementById('new-cashier-pass').value = '';
+            fetchCashiers();
+        }
+    }
+
+    async function deleteCashier(username) {
+        if(!confirm(`Revoke access for ${username}?`)) return;
+        await fetch(`/api/admin/cashiers/${username}`, { method: 'DELETE' });
+        fetchCashiers();
+    }
+
+    // --- HARDWARE SETTINGS ---
+    async function fetchSettings() {
+        const res = await fetch('/api/admin/settings');
+        const data = await res.json();
+        if(data.success) {
+            document.getElementById('setting-esp32').value = data.settings.ESP32_COM_PORT || '';
+            document.getElementById('setting-scanner').value = data.settings.SCANNER_COM_PORT || '';
+        }
+    }
+
+    async function saveSettings() {
+        const esp32 = document.getElementById('setting-esp32').value;
+        const scanner = document.getElementById('setting-scanner').value;
+        const status = document.getElementById('settings-status');
+        
+        status.innerText = "Applying...";
+        const res = await fetch('/api/admin/settings', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({esp32, scanner})
+        });
+        const data = await res.json();
+        status.innerText = data.message;
+        setTimeout(() => status.innerText = "", 3000);
+    }
+</script>
+</body>
+</html>

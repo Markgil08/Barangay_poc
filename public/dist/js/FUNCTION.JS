@@ -11,6 +11,36 @@
         let isShiftActive = false;
         let currentFocusedInput = null;
 
+        // Choice tracker for targeting correct form pre-filling after scans
+        let targetFormPageId = "";
+        let targetDocTypeName = "";
+        let targetBaseDocFee = 0;
+
+        // Keypad layouts
+        const keyboardKeysLower = [
+            ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+            ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+            ["shift", "z", "x", "c", "v", "b", "n", "m", "ñ", "backspace"]
+        ];
+
+        const keyboardKeysUpper = [
+            ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+            ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+            ["shift", "Z", "X", "C", "V", "B", "N", "M", "Ñ", "backspace"]
+        ];
+
+        // Ensure default cashier credentials exist inside local storage
+        if (!localStorage.getItem("cashier_username")) {
+            localStorage.setItem("cashier_username", "cashier");
+            localStorage.setItem("cashier_password", "cashier123");
+        }
+
+        // Ensure default admin credentials exist inside local storage
+        if (!localStorage.getItem("admin_username")) {
+            localStorage.setItem("admin_username", "admin");
+            localStorage.setItem("admin_password", "admin123");
+        }
+
         const TRANSLATIONS = {
             en: {
                 welcome: "Welcome to Sto. Niño Portal",
@@ -1183,5 +1213,3 @@
             setInterval(updateClock, 1000);
             setupVirtualKeyboard();
         });
-
-        
