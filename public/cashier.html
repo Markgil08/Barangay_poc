@@ -13,7 +13,47 @@
         .view-section { display: none; }
         .view-section.active { display: block; }
         .nav-item.active { background: #0f766e; color: white; }
-                /* High Fidelity Background Photo Overlay */
+        
+        /* ================================================= */
+        /* CUSTOM ADDED CSS START */
+        /* Admin Design Language & Glassmorphism */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05);
+        }
+        .glass-panel-dark {
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .view-section { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Sidebar Navigation Active State Override */
+        .nav-item { transition: all 0.2s ease-in-out; }
+        .nav-item.active { 
+            background: rgba(13, 148, 136, 0.9) !important;
+            color: white !important; 
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+            transform: translateX(4px);
+        }
+        /* CUSTOM ADDED CSS END */
+        /* ================================================= */
+
+        /* High Fidelity Background Photo Overlay */
         .bg-blue-photo-overlay {
             background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 32, 67, 0.95)), url('https://static2.bigstockphoto.com/5/7/4/large1500/475603217.jpg');
             background-size: cover;
@@ -57,12 +97,15 @@
 <div class="animated-gradient-overlay"></div>
 
 <!-- MODERN LIGHT THEMED LOGIN SCREEN -->
+<!-- ================================================= -->
+<!-- CUSTOM ADDED HTML START -->
+<!-- Refactored Login Screen to match admin glass-panel design -->
 <div id="login-screen" class="flex items-center justify-center min-h-screen p-6 absolute inset-0 z-50 bg-transparent">
-    <div class="w-full max-w-md bg-white/90 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl border border-white p-10 text-center relative overflow-hidden">
+    <div class="w-full max-w-md glass-panel rounded-[2.5rem] shadow-2xl p-10 text-center relative overflow-hidden">
         <!-- Decorative subtle glow -->
-        <div class="absolute -top-12 -right-12 w-32 h-32 bg-teal-100 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+        <div class="absolute -top-12 -right-12 w-32 h-32 bg-teal-300 rounded-full blur-3xl opacity-40 pointer-events-none"></div>
         
-        <div class="inline-flex bg-teal-50 text-teal-600 p-5 rounded-3xl mb-5 shadow-sm border border-teal-100 relative z-10">
+        <div class="inline-flex bg-slate-900 text-teal-400 p-5 rounded-3xl mb-5 shadow-lg border border-slate-700 relative z-10">
             <i class="fa-solid fa-cash-register text-4xl"></i>
         </div>
         <h2 class="heading-font text-3xl font-extrabold text-slate-800 mb-2 relative z-10">Cashier Terminal</h2>
@@ -70,56 +113,62 @@
         
         <div class="space-y-5 text-left relative z-10">
             <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Cashier Username</label>
-                <input type="text" id="cashier-user" class="w-full px-5 py-4 bg-slate-50/80 border border-slate-200 rounded-2xl focus:outline-none focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10 transition-all font-medium text-slate-800" placeholder="e.g., maria_c">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Cashier Username</label>
+                <input type="text" id="cashier-user" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all font-medium text-slate-800" placeholder="e.g., maria_c">
             </div>
             <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Password</label>
-                <input type="password" id="cashier-pass" class="w-full px-5 py-4 bg-slate-50/80 border border-slate-200 rounded-2xl focus:outline-none focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10 transition-all font-medium text-slate-800" placeholder="••••••••">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Password</label>
+                <input type="password" id="cashier-pass" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all font-medium text-slate-800" placeholder="••••••••">
             </div>
         </div>
         <div id="error-msg" class="text-rose-500 text-sm font-bold text-center mt-4 min-h-[20px] relative z-10"></div>
-        <button class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl mt-6 shadow-xl shadow-teal-600/20 transition-all flex justify-center items-center gap-2 relative z-10" onclick="handleLogin()">
+        <button class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl mt-6 shadow-xl shadow-teal-600/20 transition-transform hover:-translate-y-0.5 flex justify-center items-center gap-2 relative z-10" onclick="handleLogin()">
             Access System <i class="fa-solid fa-arrow-right"></i>
         </button>
     </div>
 </div>
-
+<!-- CUSTOM ADDED HTML END -->
+<!-- ================================================= -->
 
 <div id="dashboard-layout" class="hidden flex h-screen w-full overflow-hidden relative z-20">
     
-    <div class="w-72 bg-white/90 backdrop-blur-xl flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.04)] z-30 shrink-0 border-r border-slate-200/80">
-        <div class="p-8 border-b border-slate-100 flex flex-col gap-3">
-            <h1 class="heading-font text-xl font-extrabold text-teal-800 flex items-center tracking-tight">
-                <div class="bg-teal-50 p-2.5 rounded-xl border border-teal-100 mr-3">
-                    <i class="fa-solid fa-cash-register text-teal-600"></i>
+    <!-- ================================================= -->
+    <!-- CUSTOM ADDED HTML START -->
+    <!-- Redesigned Sidebar matching admin.html -->
+    <div class="w-72 glass-panel-dark flex flex-col shadow-2xl z-30 shrink-0 border-r border-slate-700/50">
+        <div class="p-8 border-b border-slate-800/80 flex flex-col gap-3">
+            <h1 class="heading-font text-xl font-extrabold text-white flex items-center tracking-tight">
+                <div class="bg-teal-500/20 p-2.5 rounded-xl border border-teal-500/30 mr-3 shadow-inner">
+                    <i class="fa-solid fa-cash-register text-teal-400"></i>
                 </div>
                 Cashier Station
             </h1>
-            <div class="flex items-center gap-2.5 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100 mt-2">
+            <div class="flex items-center gap-2.5 bg-slate-900/50 px-4 py-2.5 rounded-xl border border-slate-700 mt-2">
                 <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
-                <p class="text-xs text-slate-600 font-bold truncate" id="logged-in-name">Loading...</p>
+                <p class="text-xs text-slate-300 font-bold truncate" id="logged-in-name">Loading...</p>
             </div>
         </div>
         <nav class="flex-grow p-5 space-y-3">
-            <button onclick="nav('view-scan')" class="nav-item active w-full flex items-center p-4 rounded-2xl transition-all text-left font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+            <button onclick="nav('view-scan')" class="nav-item active w-full flex items-center p-4 rounded-2xl transition-all text-left font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white">
                 <i class="fa-solid fa-qrcode w-6 text-center mr-3 text-lg"></i> Scan & Verify
             </button>
-            <button onclick="nav('view-history')" class="nav-item w-full flex items-center p-4 rounded-2xl transition-all text-left font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+            <button onclick="nav('view-history')" class="nav-item w-full flex items-center p-4 rounded-2xl transition-all text-left font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white">
                 <i class="fa-solid fa-clock-rotate-left w-6 text-center mr-3 text-lg"></i> My History
             </button>
         </nav>
-        <div class="p-6 border-t border-slate-100">
-            <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold transition-all border border-rose-100/50">
+        <div class="p-6 border-t border-slate-800/80">
+            <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-bold transition-all border border-red-500/20">
                 <i class="fa-solid fa-power-off mr-2"></i> Terminate Session
             </button>
         </div>
     </div>
+    <!-- CUSTOM ADDED HTML END -->
+    <!-- ================================================= -->
 
     <!-- MAIN DASHBOARD AREA -->
     <div class="flex-grow overflow-y-auto p-6 md:p-10 relative">
         <div class="absolute top-6 right-6 md:top-10 md:right-10 text-right z-40">
-            <span id="live-clock" class="bg-white/90 backdrop-blur-md shadow-sm text-teal-800 text-xs md:text-sm font-mono font-bold px-5 py-2.5 rounded-full border border-slate-200 flex items-center gap-2 inline-flex"></span>
+            <span id="live-clock" class="glass-panel text-teal-800 text-xs md:text-sm font-mono font-bold px-5 py-2.5 rounded-full border border-slate-200 flex items-center gap-2 inline-flex"></span>
         </div>
 
         <!-- VIEW: SCAN & VERIFY -->
@@ -128,17 +177,21 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                 <!-- SCAN INPUT CARD -->
-                <div class="lg:col-span-4 bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white shadow-xl flex flex-col justify-between h-full">
+                <!-- ================================================= -->
+                <!-- CUSTOM ADDED HTML START -->
+                <div class="lg:col-span-4 glass-panel p-8 rounded-[2rem] flex flex-col justify-between h-full">
+                <!-- CUSTOM ADDED HTML END -->
+                <!-- ================================================= -->
                     <div class="text-center py-4 flex-grow flex flex-col justify-center items-center">
                         <div class="bg-teal-50 border border-teal-100 p-5 rounded-[1.5rem] mb-5 shadow-sm">
                             <i class="fa-solid fa-barcode text-5xl text-teal-600"></i>
                         </div>
                         <h3 class="font-extrabold text-slate-900 text-xl">Scan QR Code</h3>
-                        <p class="text-xs text-slate-400 mt-2 max-w-[200px] mx-auto leading-relaxed font-medium">Ensure cursor is focused in the input field below.</p>
+                        <p class="text-xs text-slate-500 mt-2 max-w-[200px] mx-auto leading-relaxed font-medium">Ensure cursor is focused in the input field below.</p>
                     </div>
                     
                     <div class="mt-4 w-full">
-                        <input type="text" id="manual-scan-input" placeholder="Encrypted QR Data..." class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:outline-none focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10 text-sm font-mono text-center tracking-wider mb-4 font-bold text-slate-800 transition-all shadow-inner">
+                        <input type="text" id="manual-scan-input" placeholder="Encrypted QR Data..." class="w-full px-5 py-4 bg-slate-50/80 border-2 border-slate-200 rounded-2xl focus:outline-none focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10 text-sm font-mono text-center tracking-wider mb-4 font-bold text-slate-800 transition-all shadow-inner">
                         <button onclick="processScan()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-teal-600/20">Verify Code</button>
                     </div>
                     
@@ -146,7 +199,11 @@
                 </div>
 
                 <!-- DOCUMENT DETAILS CARD -->
-                <div class="lg:col-span-8 bg-white/80 backdrop-blur-xl rounded-[2rem] border border-white shadow-xl overflow-hidden flex flex-col min-h-[500px]">
+                <!-- ================================================= -->
+                <!-- CUSTOM ADDED HTML START -->
+                <div class="lg:col-span-8 glass-panel rounded-[2rem] overflow-hidden flex flex-col min-h-[500px]">
+                <!-- CUSTOM ADDED HTML END -->
+                <!-- ================================================= -->
                     <div class="p-6 md:p-8 border-b border-slate-100 bg-white/50 flex justify-between items-center shrink-0">
                         <h3 class="font-extrabold text-slate-800 flex items-center uppercase tracking-wider text-sm">
                             <i class="fa-solid fa-file-invoice mr-3 text-teal-600"></i> Document Details
@@ -178,7 +235,11 @@
             </div>
 
             <!-- Modern Data Filter Grid -->
-            <div class="bg-white/80 backdrop-blur-xl rounded-[2rem] border border-white shadow-lg mb-8 p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 items-end">
+            <!-- ================================================= -->
+            <!-- CUSTOM ADDED HTML START -->
+            <div class="glass-panel rounded-[2rem] mb-8 p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 items-end text-slate-800">
+            <!-- CUSTOM ADDED HTML END -->
+            <!-- ================================================= -->
                 <div class="lg:col-span-2">
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Search Name/ID</label>
                     <div class="relative">
@@ -209,21 +270,21 @@
                     </select>
                 </div>
                 <div class="sm:col-span-2 lg:col-span-5 flex justify-end pt-2 border-t border-slate-200/60">
-                    <button onclick="clearFilters()" class="bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 font-bold py-2.5 px-6 rounded-xl text-xs transition-all flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-eraser"></i> Clear Filters
-                    </button>
-                </div>
+                <button onclick="clearFilters()" class="bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 font-bold py-2.5 px-6 rounded-xl text-xs transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-eraser"></i> Clear Filters
+                </button>
             </div>
+        </div>
 
-            <!-- Modern History Table -->
-            <div class="bg-white/90 backdrop-blur-xl rounded-[2rem] border border-white shadow-xl overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="bg-slate-50/80 backdrop-blur-md border-b border-slate-200">
-                            <tr>
-                                <th class="p-5 font-bold text-slate-500 uppercase tracking-wider text-xs">Time</th>
-                                <th class="p-5 font-bold text-slate-500 uppercase tracking-wider text-xs">Transaction ID</th>
-                                <th class="p-5 font-bold text-slate-500 uppercase tracking-wider text-xs">Applicant</th>
+        <!-- Modern History Table -->
+        <!-- ================================================= -->
+        <!-- CUSTOM ADDED HTML START -->
+        <div class="glass-panel rounded-[2rem] overflow-hidden">
+        <!-- CUSTOM ADDED HTML END -->
+        <!-- ================================================= -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-slate-50/95 backdrop-blur-md border-b border-slate-200">
                                 <th class="p-5 font-bold text-slate-500 uppercase tracking-wider text-xs">Document & Source</th>
                                 <th class="p-5 font-bold text-slate-500 uppercase tracking-wider text-xs pr-6">Status</th>
                             </tr>
@@ -238,6 +299,7 @@
 </div>
 
 <script>
+
     let currentCashierName = "";
     let currentTransactionId = null;
     let cashierHistoryData = []; 
@@ -292,6 +354,13 @@
         const activeBtn = document.querySelector(`button[onclick="nav('${viewId}')"]`);
         activeBtn.classList.add('active', 'text-white');
         activeBtn.classList.remove('text-slate-600');
+
+        document.querySelectorAll('.nav-item').forEach(v => {
+            v.classList.remove('text-slate-600'); 
+            if(!v.classList.contains('active')) {
+                v.classList.add('text-slate-300'); 
+            }
+        });
 
         if (viewId === 'view-history') loadHistory();
         if (viewId === 'view-scan') document.getElementById('manual-scan-input').focus();

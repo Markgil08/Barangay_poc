@@ -326,7 +326,74 @@
     </div>
 
     <script>
-        // We use `var` across the board in the global scope to prevent `ReferenceError` problems in sandboxed iframes.
+        const RemoteAudioManager = {
+            play: function(soundType) {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                switch(soundType) {
+                    case 'click':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(800, now);
+                        osc.frequency.exponentialRampToValueAtTime(1000, now + 0.03);
+                        gain.gain.setValueAtTime(0.05, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+                        osc.start(now); osc.stop(now + 0.03);
+                        break;
+                    case 'type':
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(500, now);
+                        osc.frequency.exponentialRampToValueAtTime(300, now + 0.02);
+                        gain.gain.setValueAtTime(0.03, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+                        osc.start(now); osc.stop(now + 0.02);
+                        break;
+                    case 'transition':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(300, now);
+                        osc.frequency.linearRampToValueAtTime(500, now + 0.1);
+                        gain.gain.setValueAtTime(0.04, now);
+                        gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                        osc.start(now); osc.stop(now + 0.1);
+                        break;
+                    case 'toggle':
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(600, now);
+                        osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+                        gain.gain.setValueAtTime(0.04, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                        osc.start(now); osc.stop(now + 0.05);
+                        break;
+                }
+            },
+            init: function() {
+                document.addEventListener('click', (e) => {
+                    if (e.target.closest('button') || e.target.closest('.group')) {
+                        this.play('click');
+                    } else if (e.target.closest('input[type="checkbox"]')) {
+                        this.play('toggle');
+                    }
+                });
+                document.addEventListener('input', (e) => {
+                    if (e.target.tagName === 'INPUT' && e.target.type !== 'checkbox' || e.target.tagName === 'SELECT') {
+                        this.play('type');
+                    }
+                });
+            }
+        };
+        
+        window.addEventListener('DOMContentLoaded', () => RemoteAudioManager.init());
+
+        const _navRemote = window.nav;
+        window.nav = function(pageId) {
+            RemoteAudioManager.play('transition');
+            if(_navRemote) _navRemote(pageId);
+        };
+
         var AudioContextObj = window.AudioContext || window.webkitAudioContext;
         var audioCtx = new AudioContextObj();
 

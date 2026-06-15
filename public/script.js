@@ -1,3 +1,101 @@
+const KioskAudioManager = {
+            play: function(soundType) {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                switch(soundType) {
+                    case 'key':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(900, now);
+                        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.02);
+                        gain.gain.setValueAtTime(0.08, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+                        osc.start(now); osc.stop(now + 0.02);
+                        break;
+                    case 'backspace':
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(300, now);
+                        osc.frequency.exponentialRampToValueAtTime(150, now + 0.04);
+                        gain.gain.setValueAtTime(0.08, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                        osc.start(now); osc.stop(now + 0.04);
+                        break;
+                    case 'print':
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(80, now);
+                        gain.gain.setValueAtTime(0.03, now);
+                        for(let i=0; i<15; i++) {
+                            osc.frequency.linearRampToValueAtTime(100, now + i*0.06);
+                            osc.frequency.linearRampToValueAtTime(70, now + i*0.06 + 0.03);
+                        }
+                        gain.gain.linearRampToValueAtTime(0, now + 0.9);
+                        osc.start(now); osc.stop(now + 0.9);
+                        break;
+                    case 'transition':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(400, now);
+                        osc.frequency.linearRampToValueAtTime(600, now + 0.15);
+                        gain.gain.setValueAtTime(0.04, now);
+                        gain.gain.linearRampToValueAtTime(0, now + 0.15);
+                        osc.start(now); osc.stop(now + 0.15);
+                        break;
+                    case 'modal':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(700, now);
+                        osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+                        gain.gain.setValueAtTime(0.05, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                        osc.start(now); osc.stop(now + 0.1);
+                        break;
+                }
+            },
+            init: function() {
+                document.addEventListener('click', (e) => {
+                    if (e.target.closest('.KioskBoard-Key')) {
+                        const keyEl = e.target.closest('.KioskBoard-Key');
+                        if (keyEl.innerText === 'Backspace' || keyEl.classList.contains('KioskBoard-Key-Backspace')) {
+                            this.play('backspace');
+                        } else {
+                            this.play('key');
+                        }
+                    } else if (e.target.closest('button') || e.target.closest('.group') || e.target.closest('.screensaver-action')) {
+                        this.play('key');
+                    }
+                });
+            }
+        };
+        
+        window.addEventListener('DOMContentLoaded', () => KioskAudioManager.init());
+        
+        // Non-destructive wrappers for existing functions to add sounds
+        const _nav = window.nav;
+        window.nav = function(pageId) {
+            KioskAudioManager.play('transition');
+            if(_nav) _nav(pageId);
+        };
+
+        const _openCameraModal = window.openCameraModal;
+        window.openCameraModal = function(idType) {
+            KioskAudioManager.play('modal');
+            if(_openCameraModal) _openCameraModal(idType);
+        };
+
+        const _closeCameraModal = window.closeCameraModal;
+        window.closeCameraModal = function() {
+            KioskAudioManager.play('modal');
+            if(_closeCameraModal) _closeCameraModal();
+        };
+
+        const _printReceipt = window.printReceipt;
+        window.printReceipt = async function() {
+            KioskAudioManager.play('print');
+            if(_printReceipt) await _printReceipt();
+        };
+        
 KioskBoard.init({
     keysArrayOfObjects: [
       { "0": "Q", "1": "W", "2": "E", "3": "R", "4": "T", "5": "Y", "6": "U", "7": "I", "8": "O", "9": "P" },
