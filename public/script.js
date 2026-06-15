@@ -53,7 +53,6 @@ let sessionStartTime = null;
 let idleTimer;
 let kioskLanguage = "en";
 
-// --- SOUND ENGINE ---
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioCtx = new AudioContext();
 
@@ -88,7 +87,6 @@ function playSound(type) {
     }
 }
 
-// --- CLOCK ---
 setInterval(() => {
     const clock = document.getElementById('live-clock-kiosk');
     if (clock) clock.innerText = new Date().toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -96,7 +94,6 @@ setInterval(() => {
     if (fullDate) fullDate.innerText = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }, 1000);
 
-// --- NAVIGATION & IDLE TIMER ---
 function nav(pageId) {
     playSound('tap');
     if(pageId === 'page-success') setTimeout(() => playSound('success'), 200);
@@ -117,10 +114,9 @@ document.onmousemove = resetIdleTimer;
 document.onclick = resetIdleTimer;
 document.onkeypress = resetIdleTimer;
 
-// --- LANGUAGE TOGGLE ---
 const dict = {
-    en: { welcome: "Touch Screen to Begin", subwelcome: "Request, review, and print receipts for Barangay Documents instantly.", selectTitle: "Select Document Type", clearanceTitle: "Barangay Clearance", clearanceDesc: "Residency and moral standing.", indigencyTitle: "Cert. of Indigency", indigencyDesc: "Low-income financial assistance.", residencyTitle: "Cert. of Residency", residencyDesc: "Proof of address.", businessTitle: "Business Permit", businessDesc: "License to operate.", screensaverBtn: "Screensaver", modeIndicator: "English Mode" },
-    ph: { welcome: "Pindutin ang Screen", subwelcome: "Mabilis na makakuha at mag-print ng resibo para sa mga Dokumento ng Barangay.", selectTitle: "Pumili ng Dokumento", clearanceTitle: "Barangay Clearance", clearanceDesc: "Sertipiko ng paninirahan at mabuting asal.", indigencyTitle: "Sertipiko ng Indigency", indigencyDesc: "Tulong-pinansyal sa mababang kita.", residencyTitle: "Sertipiko ng Paninirahan", residencyDesc: "Katunayan ng tirahan.", businessTitle: "Permit sa Negosyo", businessDesc: "Lisensya para magpatakbo ng negosyo.", screensaverBtn: "Bumalik (Screensaver)", modeIndicator: "Tagalog Mode" }
+    en: { welcome: "Touch Screen to Begin", subwelcome: "Request, review, and print receipts for Barangay Documents instantly.", selectTitle: "Select Document Type", clearanceTitle: "Barangay Clearance", clearanceDesc: "Residency and moral standing.", indigencyTitle: "Certificate of Indigency", indigencyDesc: "Low-income financial assistance.", residencyTitle: "Certificate of Residency", residencyDesc: "Proof of address.", businessTitle: "Business Permit", businessDesc: "License to operate.", screensaverBtn: "Screensaver", modeIndicator: "English Mode" },
+    ph: { welcome: "Pindutin ang Screen", subwelcome: "Mabilis na makakuha at mag-print ng resibo para sa mga Dokumento ng Barangay.", selectTitle: "Pumili ng Dokumento", clearanceTitle: "Barangay Clearance", clearanceDesc: "Sertipiko ng paninirahan at mabuting asal.", indigencyTitle: "Sertipiko ng Kahirapan", indigencyDesc: "Tulong-pinansyal sa mababang kita.", residencyTitle: "Sertipiko ng Paninirahan", residencyDesc: "Katunayan ng tirahan.", businessTitle: "Permit sa Negosyo", businessDesc: "Lisensya para magpatakbo ng negosyo.", screensaverBtn: "Bumalik (Screensaver)", modeIndicator: "Tagalog Mode" }
 };
 
 window.toggleLanguage = function(lang) {
@@ -154,7 +150,6 @@ window.toggleLanguage = function(lang) {
     document.getElementById("header-lang-text").innerText = dict[lang].modeIndicator;
 };
 
-// --- CUSTOM ALERTS ---
 window.openMessageBox = function(title, text, type = "info") {
     document.getElementById('msg-box-title').innerText = title;
     document.getElementById('msg-box-text').innerText = text;
@@ -188,7 +183,29 @@ window.alert = function(msg) {
     openMessageBox("Notification", msg, "error");
 };
 
-// --- CORE KIOSK FUNCTIONS ---
+// --- T&C LOGIC ---
+window.toggleTnc = function(checkbox) {
+    playSound('tap');
+    const btnGroup = document.getElementById('id-buttons');
+    if(checkbox.checked) {
+        btnGroup.style.opacity = "1";
+        btnGroup.style.pointerEvents = "auto";
+    } else {
+        btnGroup.style.opacity = "0.4";
+        btnGroup.style.pointerEvents = "none";
+    }
+};
+
+window.showTncModal = function() {
+    playSound('tap');
+    document.getElementById('tnc-modal').style.display = 'flex';
+};
+
+window.closeTncModal = function() {
+    playSound('tap');
+    document.getElementById('tnc-modal').style.display = 'none';
+};
+
 function updateBusinessPermitFee(selectElement) {
     currentFee = parseInt(selectElement.value);
     document.getElementById('form-fee').innerText = currentFee + ".00";
@@ -199,6 +216,13 @@ function presentEntryChoice(docType, fee) {
     baseFeeForDoc = fee;
     currentFee = fee; 
     sessionStartTime = Date.now(); 
+    
+    // Reset T&C
+    const cb = document.getElementById('tnc-checkbox');
+    if(cb) cb.checked = false;
+    const btnGroup = document.getElementById('id-buttons');
+    if(btnGroup) { btnGroup.style.opacity = "0.4"; btnGroup.style.pointerEvents = "none"; }
+
     document.getElementById('modal-id-selector').style.display = 'flex';
     resetIdleTimer();
 }
@@ -243,7 +267,8 @@ function generateDynamicForm(prefillData = null) {
         
         if (field.type === 'text' || field.type === 'date') {
             const kbClass = field.type === 'text' ? 'virtual-keyboard' : ''; 
-            inputHtml += `<input type="${field.type}" class="form-control ${kbClass} dynamic-input w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-2xl px-4 py-3" data-key="${field.label}" data-kioskboard-specialcharacters="true" placeholder=" " value="${val}">`;
+            // --- FIX: Added inputmode="none" to show caret but block OS keyboard ---
+            inputHtml += `<input type="${field.type}" inputmode="none" class="form-control ${kbClass} dynamic-input w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-2xl px-4 py-3" data-key="${field.label}" data-kioskboard-specialcharacters="true" placeholder=" " value="${val}">`;
         } 
         else if (field.type === 'select') {
             let optionsHtml = `<option value="" disabled ${val===""?'selected':''}>Select an option...</option>`;
@@ -265,7 +290,7 @@ function generateDynamicForm(prefillData = null) {
     KioskBoard.run('.virtual-keyboard');
     attachKeyboardScrollFix();
     
-    // AI Enhancer Injection
+// AI Enhancer Injection
     setTimeout(() => {
         const purposeInput = document.querySelector('input[data-key="Purpose of Request"]');
         if (purposeInput) {
@@ -391,7 +416,6 @@ function attachKeyboardScrollFix() {
     });
 }
 
-// Camera Functions
 let videoStream = null;
 let currentAiTask = "";
 
@@ -443,6 +467,83 @@ async function captureAndProcessID() {
     } catch (err) { status.innerHTML = `<span style="color:#dc2626;">Error connecting to AI Server.</span>`; }
 }
 
+async function submitData() {
+    const inputs = document.querySelectorAll('.dynamic-input');
+    let formData = {};
+    let isComplete = true;
+
+    inputs.forEach(input => {
+        if (!input.value) isComplete = false;
+        if (input.getAttribute('data-key') === 'Business Scale') formData[input.getAttribute('data-key')] = input.options[input.selectedIndex].text;
+        else formData[input.getAttribute('data-key')] = input.value; 
+    });
+
+    if (!isComplete) return alert("Please fill all fields to proceed.");
+
+    // Added source: 'KIOSK' payload
+    const response = await fetch('/api/submit', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ docType: currentDocType, formData: formData, kioskStartTime: sessionStartTime, source: 'KIOSK' })
+    });
+
+    const result = await response.json();
+    if(result.success) {
+        currentEncryptedQR = result.encryptedQR;
+        document.getElementById('prev-type').innerText = currentDocType;
+        document.getElementById('prev-id').innerText = result.transactionId;
+        document.getElementById('prev-fee').innerText = currentFee === 0 ? "FREE" : currentFee + ".00";
+        nav('page-preview');
+    }
+}
+// --- NEW: API to fetch all active cashiers for Admin filter ---
+app.get('/api/admin/cashier-list', (req, res) => {
+    db.all(`SELECT name FROM users WHERE role = 'cashier'`, [], (err, rows) => {
+        res.json({ success: !err, cashiers: rows || [] });
+    });
+});
+
+// --- UPDATED: Cashier history now supports search/filtering ---
+app.post('/api/cashier-history', (req, res) => {
+    const { cashierName, dateStr, searchQuery } = req.body; 
+    let query = `SELECT * FROM transactions WHERE cashier_name LIKE ?`;
+    let params = [`${cashierName}%`];
+
+    if (dateStr) {
+        const startOfDay = new Date(`${dateStr}T00:00:00`).getTime();
+        const endOfDay = new Date(`${dateStr}T23:59:59.999`).getTime();
+        query += ` AND created_at >= ? AND created_at <= ?`;
+        params.push(startOfDay, endOfDay);
+    }
+    if (searchQuery) {
+        query += ` AND (transaction_id LIKE ? OR user_name LIKE ?)`;
+        params.push(`%${searchQuery}%`, `%${searchQuery}%`);
+    }
+
+    db.all(query + ` ORDER BY created_at DESC`, params, (err, rows) => {
+        res.json({ success: !err, history: rows || [] });
+    });
+});
+
+async function printReceipt() {
+    document.getElementById('success-id').innerText = document.getElementById('prev-id').innerText;
+    const response = await fetch('/api/print-receipt', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ docType: currentDocType, totalAmount: currentFee, encryptedQR: currentEncryptedQR })
+    });
+    
+    const result = await response.json();
+    if (result.printerFailed) {
+        document.getElementById('printer-warning').style.display = 'block';
+        document.getElementById('fallback-qr').innerText = result.rawText;
+        if (result.qrImage) {
+            const qrImgElement = document.getElementById('fallback-qr-img');
+            qrImgElement.src = result.qrImage; qrImgElement.style.display = 'block';
+        }
+    } else {
+        document.getElementById('printer-warning').style.display = 'none';
+    }
+    nav('page-success');
+}
 async function submitData() {
     const inputs = document.querySelectorAll('.dynamic-input');
     let formData = {};

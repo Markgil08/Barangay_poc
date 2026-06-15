@@ -35,38 +35,22 @@
         .form-control:focus { border-color: #0f766e; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.1); }
         select.form-control { cursor: pointer; appearance: none; }
 
-        /* Custom Modals */
-        #custom-message-box { 
-            display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; 
-            background:rgba(2, 6, 23, 0.85); backdrop-filter: blur(8px); z-index:9999; 
-            justify-content:center; align-items:center; 
-        }
+        #custom-message-box, #tnc-modal { display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(2, 6, 23, 0.85); backdrop-filter: blur(8px); z-index:9999; justify-content:center; align-items:center; }
         
         /* High Fidelity Background Photo Overlay */
         .bg-blue-photo-overlay {
             background-image: linear-gradient(rgba(15, 23, 42, 0.80), rgba(15, 32, 67, 0.90)), url('https://static2.bigstockphoto.com/5/7/4/large1500/475603217.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+            background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;
         }
 
         /* Animated Linear Gradient Shift Layer */
         .animated-gradient-overlay {
             background: linear-gradient(-45deg, rgba(20, 184, 166, 0.15), rgba(99, 102, 241, 0.15), rgba(13, 148, 136, 0.2), rgba(6, 78, 59, 0.15));
-            background-size: 400% 400%;
-            animation: bg-slide 10s infinite ease-in-out;
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 1;
+            background-size: 400% 400%; animation: bg-slide 10s infinite ease-in-out;
+            position: fixed; inset: 0; pointer-events: none; z-index: 1;
         }
 
-        @keyframes bg-slide {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        @keyframes bg-slide { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     </style>
 </head>
 
@@ -197,6 +181,13 @@
                 </div>
                 
                 <div id="dynamic-fields"></div> 
+
+                <div class="mb-6 text-left bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <label class="flex items-start space-x-3 cursor-pointer">
+                        <input type="checkbox" id="remote-tnc-checkbox" onchange="toggleRemoteTnc(this)" class="mt-0.5 w-5 h-5 text-teal-600 rounded focus:ring-teal-500">
+                        <span class="text-xs text-slate-600 leading-tight" id="lang-tnc-checkbox-label">I agree to the <a href="#" onclick="showTncModal(); return false;" class="text-teal-600 font-bold underline">Terms & Conditions</a> and consent to the collection of my data under the Data Privacy Act.</span>
+                    </label>
+                </div>
                 
                 <div class="mt-8 flex flex-col sm:flex-row gap-3 border-t border-slate-100 pt-6">
                     <button class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 px-6 rounded-2xl w-full shadow-lg transition-all order-1 sm:order-2 text-lg" id="lang-form-btn-submit" onclick="submitData()">Review & Verify</button>
@@ -309,6 +300,19 @@
         </div>
     </main>
 
+    <!-- TERMS AND CONDITIONS MODAL -->
+    <div id="tnc-modal">
+        <div class="bg-white rounded-[2rem] p-6 md:p-8 shadow-2xl max-w-lg w-full border border-slate-100 flex flex-col max-h-[80vh] m-4">
+            <h2 id="lang-tnc-modal-title" class="heading-font text-2xl font-extrabold text-slate-800 mb-2 border-b border-slate-200 pb-4"><i class="fa-solid fa-scale-balanced text-teal-600 mr-2"></i> Terms & Conditions</h2>
+            <div class="overflow-y-auto pr-2 my-4 text-sm text-slate-600 space-y-4">
+                <p id="lang-tnc-sec1"><strong>1. Data Collection & Privacy</strong><br>By using this E-Portal, you consent to the collection and processing of your personal information strictly for the issuance of Barangay Documents in accordance with the Data Privacy Act of 2012 (R.A. 10173).</p>
+                <p id="lang-tnc-sec2"><strong>2. Accuracy of Information</strong><br>You certify that all information provided is true and correct. Falsification of public documents is punishable by law.</p>
+                <p id="lang-tnc-sec3"><strong>3. Data Retention</strong><br>Your document data is encrypted and automatically wiped from our active servers within 24 hours of printing to ensure your privacy.</p>
+            </div>
+            <button onclick="closeTncModal()" id="lang-tnc-btn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl shadow transition-all mt-2">I Understand</button>
+        </div>
+    </div>
+
     <!-- BEAUTIFUL CUSTOM MESSAGE BOX (For overriding alerts) -->
     <div id="custom-message-box" style="display: none;">
         <div class="bg-white/95 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-2xl max-w-sm w-full border border-white/50 text-center transform transition-all scale-100">
@@ -322,13 +326,14 @@
     </div>
 
     <script>
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
+        // We use `var` across the board in the global scope to prevent `ReferenceError` problems in sandboxed iframes.
+        var AudioContextObj = window.AudioContext || window.webkitAudioContext;
+        var audioCtx = new AudioContextObj();
 
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+            var oscillator = audioCtx.createOscillator();
+            var gainNode = audioCtx.createGain();
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
             
@@ -357,13 +362,13 @@
         }
 
         setInterval(() => {
-            const clock = document.getElementById('live-clock-remote');
+            var clock = document.getElementById('live-clock-remote');
             if (clock) clock.innerText = new Date().toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         }, 1000);
 
-        let currentLang = 'en';
+        var currentLang = 'en';
 
-        const dict = {
+        var dict = {
             en: { 
                 modeIndicator: "English Mode",
                 welcomeTitle: "Welcome to E-Portal",
@@ -401,6 +406,12 @@
                 succDocreqLbl: "Document Request",
                 succWarning: "<strong>Warning:</strong> This QR code is only valid for <strong>24 hours</strong>. If unpaid by then, you must re-apply.",
                 succBtn: "Start New Request",
+                tncLabel: "I agree to the <a href='#' onclick='showTncModal(); return false;' class='text-teal-600 font-bold underline'>Terms & Conditions</a> and consent to the collection of my data under the Data Privacy Act.",
+                tncModalTitle: "Terms & Conditions",
+                tncSec1: "<strong>1. Data Collection & Privacy</strong><br>By using this E-Portal, you consent to the collection and processing of your personal information strictly for the issuance of Barangay Documents in accordance with the Data Privacy Act of 2012 (R.A. 10173).",
+                tncSec2: "<strong>2. Accuracy of Information</strong><br>You certify that all information provided is true and correct. Falsification of public documents is punishable by law.",
+                tncSec3: "<strong>3. Data Retention</strong><br>Your document data is encrypted and automatically wiped from our active servers within 24 hours of printing to ensure your privacy.",
+                tncBtn: "I Understand",
                 docTypes: {
                     "Barangay Clearance": "Barangay Clearance",
                     "Certificate of Indigency": "Certificate of Indigency",
@@ -426,8 +437,8 @@
             },
             ph: { 
                 modeIndicator: "Tagalog Mode",
-                welcomeTitle: "Maligayang Pagdating",
-                welcomeSub: "Mga Digital na Serbisyo ng Brgy. Sto. Niño",
+                welcomeTitle: "Maligayang Pagdating sa E-Portal",
+                welcomeSub: "Mga Serbisyo Digital ng Barangay Sto. Niño",
                 welcomeBtn: "Magsimula",
                 selectTitle: "Kumuha ng Dokumento Online", 
                 subwelcome: "Gumawa ng QR Code dito, at ipakita sa Cashier upang i-print ang iyong dokumento.", 
@@ -436,31 +447,37 @@
                 residencyTitle: "Sertipiko ng Paninirahan", 
                 businessTitle: "Permit sa Negosyo", 
                 btnBack: "Bumalik",
-                formSub: "Punan ng kumpleto ang mga detalye.",
-                formFeeLbl: "Kabuuang Bayad",
+                formSub: "Punan ng kumpleto ang mga detalye sa ibaba.",
+                formFeeLbl: "Kabuuang Bayaran",
                 formBtnSubmit: "Suriin at Patunayan",
                 formBtnCancel: "Kanselahin",
                 prevBadge: "Suriin ang Datos",
-                prevTitle: "Patunayan ang Detalye",
-                prevSub: "Suriin ang mga detalye bago gumawa ng resibo at barcode.",
-                prevInfo: "Inilagay na Impormasyon",
-                prevVerified: "Beripikadong Datos",
-                prevSummary: "Buod ng Resibo",
+                prevTitle: "I-validate ang Detalye ng Transaksyon",
+                prevSub: "Pakisuri muli ang mga detalye sa ibaba bago magpatuloy sa paggawa ng resibo at barcode.",
+                prevInfo: "Ipinasok na Impormasyon",
+                prevVerified: "Mga Na-verify na Field",
+                prevSummary: "Buod ng Resibo ng Kiosk",
                 prevDoctype: "Uri ng Dokumento:",
                 prevTxnid: "ID ng Transaksyon:",
                 prevCharge: "Bayad sa Serbisyo:",
                 prevFree: "Libre (Kasama na)",
-                prevTotalfee: "Kabuuang Bayad:",
+                prevTotalfee: "Kabuuang Bayarin:",
                 prevDisclaimer: "Sa pag-kumpirma, pinapahintulutan mo ang pagpadala ng mga rekord na ito sa server ng lokal na pamahalaan.",
                 prevBack: "Bumalik sa Form",
-                prevPrint: "Kumpirmahin at Gumawa ng QR",
-                succTitle: "Nai-save na!",
+                prevPrint: "Kumpirmahin at Gumawa ng QR Code",
+                succTitle: "Nai-save na ang Application!",
                 succSub: "I-screenshot o i-save ang pahinang ito.",
-                succPresent: "Ipakita ito sa Cashier",
+                succPresent: "Ipakita ito sa Barangay Cashier",
                 succTxnidLbl: "ID ng Transaksyon",
                 succDocreqLbl: "Nirequest na Dokumento",
-                succWarning: "<strong>Babala:</strong> Ang QR code na ito ay valid lamang ng <strong>24 oras</strong>. Kung hindi mabayaran, kailangan mong mag-apply ulit.",
+                succWarning: "<strong>Babala:</strong> Ang QR code na ito ay valid lamang ng <strong>24 oras</strong>. Kung hindi mabayaran, kailangan mong mag-apply muli.",
                 succBtn: "Gumawa ng Bagong Request",
+                tncLabel: "Sumasang-ayon ako sa <a href='#' onclick='showTncModal(); return false;' class='text-teal-600 font-bold underline'>Mga Tuntunin at Kundisyon</a> at nagbibigay ng pahintulot sa paglipon ng aking data sa ilalim ng Data Privacy Act.",
+                tncModalTitle: "Mga Tuntunin at Kundisyon",
+                tncSec1: "<strong>1. Koleksyon ng Datos at Pagkapribado</strong><br>Sa paggamit ng E-Portal na ito, sumasang-ayon ka sa pag-kolekta at pagproseso ng iyong personal na impormasyon para lamang sa pag-isyu ng mga Dokumento ng Barangay alinsunod sa Data Privacy Act of 2012 (R.A. 10173).",
+                tncSec2: "<strong>2. Katumpakan ng Impormasyon</strong><br>Iyong pinatutunayan na ang lahat ng impormasyong ibinigay ay totoo at tama. Ang palsipikasyon ng mga pampublikong dokumento ay may kaukulang parusa sa ilalim ng batas.",
+                tncSec3: "<strong>3. Pagpapanatili ng Datos</strong><br>Ang data ng iyong dokumento ay naka-encrypt at awtomatikong binubura mula sa aming aktibong server sa loob ng 24 oras matapos ma-print upang matiyak ang iyong privacy.",
+                tncBtn: "Naiintindihan Ko",
                 docTypes: {
                     "Barangay Clearance": "Barangay Clearance",
                     "Certificate of Indigency": "Sertipiko ng Indigency",
@@ -472,7 +489,7 @@
                     "Complete Address": "Kumpletong Address",
                     "Date of Birth": "Araw ng Kapanganakan",
                     "Civil Status": "Katayuang Sibil",
-                    "Purpose of Request": "Dahilan ng Pagkuha",
+                    "Purpose of Request": "Dahilan ng Paghiling",
                     "Estimated Monthly Income": "Tinatayang Buwanang Kita",
                     "Years of Residency": "Taon ng Paninirahan",
                     "Owner Full Name": "Buong Pangalan ng May-ari",
@@ -489,9 +506,9 @@
         window.toggleLanguage = function(lang) {
             playSound('tap');
             currentLang = lang;
-            const btnEn = document.getElementById("lang-btn-en");
-            const btnPh = document.getElementById("lang-btn-ph");
-            const baseClass = "px-5 py-2.5 rounded-2xl font-bold transition-all text-xs md:text-sm shadow-sm w-full sm:w-auto ";
+            var btnEn = document.getElementById("lang-btn-en");
+            var btnPh = document.getElementById("lang-btn-ph");
+            var baseClass = "px-5 py-2.5 rounded-2xl font-bold transition-all text-xs md:text-sm shadow-sm w-full sm:w-auto ";
             if (lang === "en") {
                 btnEn.className = baseClass + "bg-teal-700 text-white border border-teal-700";
                 btnPh.className = baseClass + "bg-white/85 text-slate-700 border border-slate-200 hover:bg-white";
@@ -500,7 +517,7 @@
                 btnEn.className = baseClass + "bg-white/85 text-slate-700 border border-slate-200 hover:bg-white";
             }
             
-            const mapping = {
+            var mapping = {
                 "lang-welcome-title": "welcomeTitle",
                 "lang-welcome-sub": "welcomeSub",
                 "lang-welcome-btn": "welcomeBtn",
@@ -536,31 +553,37 @@
                 "lang-succ-txnid-lbl": "succTxnidLbl",
                 "lang-succ-docreq-lbl": "succDocreqLbl",
                 "lang-succ-warning": "succWarning",
-                "lang-succ-btn": "succBtn"
+                "lang-succ-btn": "succBtn",
+                "lang-tnc-checkbox-label": "tncLabel",
+                "lang-tnc-modal-title": "tncModalTitle",
+                "lang-tnc-sec1": "tncSec1",
+                "lang-tnc-sec2": "tncSec2",
+                "lang-tnc-sec3": "tncSec3",
+                "lang-tnc-btn": "tncBtn"
             };
 
             for (const [id, key] of Object.entries(mapping)) {
-                const el = document.getElementById(id);
+                var el = document.getElementById(id);
                 if (el) el.innerHTML = dict[lang][key]; 
             }
 
             if (currentDocType) {
-                const docTitle = dict[lang].docTypes[currentDocType] || currentDocType;
+                var docTitle = dict[lang].docTypes[currentDocType] || currentDocType;
                 document.getElementById('form-header').innerHTML = currentDocType === 'Barangay Business Permit' ? `<i class="fa-solid fa-shop mr-2 text-amber-600"></i> ${docTitle}` : docTitle;
                 
-                const elPrevType = document.getElementById('prev-type');
+                var elPrevType = document.getElementById('prev-type');
                 if(elPrevType) elPrevType.innerText = docTitle;
-                const elSuccType = document.getElementById('success-type');
+                var elSuccType = document.getElementById('success-type');
                 if(elSuccType) elSuccType.innerText = docTitle;
 
                 if(document.getElementById('page-form').classList.contains('active-page')) {
                      document.querySelectorAll('.input-floating-container').forEach(container => {
-                         const input = container.querySelector('.dynamic-input');
-                         const label = container.querySelector('label');
+                         var input = container.querySelector('.dynamic-input');
+                         var label = container.querySelector('label');
                          if(input && label) {
-                             const dataKey = input.getAttribute('data-key');
-                             const fieldDef = formBlueprints[currentDocType].find(f => f.label === dataKey);
-                             let translatedLabel = dict[lang].fields[dataKey] || dataKey;
+                             var dataKey = input.getAttribute('data-key');
+                             var fieldDef = formBlueprints[currentDocType].find(f => f.label === dataKey);
+                             var translatedLabel = dict[lang].fields[dataKey] || dataKey;
                              if(fieldDef && fieldDef.placeholder) {
                                  translatedLabel += ' （' + fieldDef.placeholder + '）';
                              }
@@ -573,11 +596,11 @@
                 }
                 
                 if(document.getElementById('page-preview').classList.contains('active-page')) {
-                    const previewContainer = document.getElementById('preview-form-fields');
+                    var previewContainer = document.getElementById('preview-form-fields');
                     previewContainer.innerHTML = "";
                     Object.entries(lastFormData).forEach(([key, val]) => {
-                        const translatedKey = dict[lang].fields[key] || key;
-                        const row = document.createElement('div');
+                        var translatedKey = dict[lang].fields[key] || key;
+                        var row = document.createElement('div');
                         row.className = "flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 border-b border-slate-100 gap-1 sm:gap-0";
                         row.innerHTML = `
                             <span class="text-xs md:text-sm text-slate-500 font-semibold tracking-wide">${translatedKey}</span>
@@ -592,8 +615,8 @@
         window.openMessageBox = function(title, text, type = "info") {
             document.getElementById('msg-box-title').innerText = title;
             document.getElementById('msg-box-text').innerText = text;
-            const iconContainer = document.getElementById('msg-box-icon-container');
-            const icon = document.getElementById('msg-box-icon');
+            var iconContainer = document.getElementById('msg-box-icon-container');
+            var icon = document.getElementById('msg-box-icon');
             
             if (type === "error") {
                 iconContainer.className = "h-16 w-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-red-100 shadow-inner";
@@ -622,9 +645,9 @@
             openMessageBox("Notification", msg, "error");
         };
 
-        const civilStatusOptions = ['Single', 'Married', 'Widowed', 'Legally Separated'];
+        var civilStatusOptions = ['Single', 'Married', 'Widowed', 'Legally Separated'];
         
-        const formBlueprints = {
+        var formBlueprints = {
             "Barangay Clearance": [
                 { type: 'text', label: 'Applicant Name', placeholder: 'Juan Dela Cruz' },
                 { type: 'text', label: 'Complete Address', placeholder: 'House No., Street, Purok' },
@@ -659,12 +682,12 @@
             ]
         };
 
-        let currentDocType = "";
-        let currentFee = 0;
-        let baseFeeForDoc = 0;
-        let sessionStartTime = null;
-        let lastFormData = {}; // Holds values for navigation persistence
-        let activeTxnId = "";
+        var currentDocType = "";
+        var currentFee = 0;
+        var baseFeeForDoc = 0;
+        var sessionStartTime = null;
+        var lastFormData = {}; 
+        var activeTxnId = "";
 
         function nav(pageId) {
             playSound('tap');
@@ -686,9 +709,13 @@
             currentFee = fee;
             sessionStartTime = Date.now();
             lastFormData = {}; // clear form inputs on fresh start
-            activeTxnId = "TXN-" + Math.floor(100000 + Math.random() * 900000); // Generate early so we have it!
+            activeTxnId = "TXN-" + Math.floor(100000 + Math.random() * 900000); 
             
-            const docTitle = dict[currentLang].docTypes[docType] || docType;
+            // Set Terms agreement checkbox state to unchecked
+            var chk = document.getElementById('remote-tnc-checkbox');
+            if (chk) chk.checked = false;
+            
+            var docTitle = dict[currentLang].docTypes[docType] || docType;
             document.getElementById('form-header').innerHTML = docType === 'Barangay Business Permit' ? `<i class="fa-solid fa-shop mr-2 text-amber-600"></i> ${docTitle}` : docTitle;
             
             if (docType !== 'Barangay Business Permit') {
@@ -702,19 +729,19 @@
         }
 
         function renderForm() {
-            const container = document.getElementById('dynamic-fields');
+            var container = document.getElementById('dynamic-fields');
             container.innerHTML = ''; 
 
             formBlueprints[currentDocType].forEach((field) => {
-                let inputHtml = `<div class="input-floating-container">`;
-                const savedVal = lastFormData[field.label] || "";
+                var inputHtml = `<div class="input-floating-container">`;
+                var savedVal = lastFormData[field.label] || "";
                 
                 if (field.type === 'text') {
                     inputHtml += `<input type="text" class="form-control dynamic-input" data-key="${field.label}" value="${savedVal}" placeholder=" " required>`;
                 } else if (field.type === 'date') {
                     inputHtml += `<input type="date" class="form-control dynamic-input" data-key="${field.label}" value="${savedVal}" required>`;
                 } else if (field.type === 'select') {
-                    let optionsHtml = `<option value="" disabled ${savedVal === "" ? "selected" : ""}>${dict[currentLang].placeholder}</option>`;
+                    var optionsHtml = `<option value="" disabled ${savedVal === "" ? "selected" : ""}>${dict[currentLang].placeholder}</option>`;
                     if (typeof field.options[0] === 'object') {
                         field.options.forEach(opt => { 
                             optionsHtml += `<option value="${opt.value}" ${savedVal === opt.text ? "selected" : ""}>${opt.text}</option>`; 
@@ -724,11 +751,11 @@
                             optionsHtml += `<option value="${opt}" ${savedVal === opt ? "selected" : ""}>${opt}</option>`; 
                         });
                     }
-                    const onChangeAttr = field.onChange ? `onchange="${field.onChange}"` : '';
+                    var onChangeAttr = field.onChange ? `onchange="${field.onChange}"` : '';
                     inputHtml += `<select class="form-control dynamic-input" data-key="${field.label}" ${onChangeAttr} required>${optionsHtml}</select>`;
                 }
                 
-                const translatedLabel = dict[currentLang].fields[field.label] || field.label;
+                var translatedLabel = dict[currentLang].fields[field.label] || field.label;
                 inputHtml += `<label>${translatedLabel} ${field.placeholder ? '（'+field.placeholder+'）' : ''}</label></div>`;
                 container.innerHTML += inputHtml;
             });
@@ -738,11 +765,19 @@
         // --- SUBMIT FORM DATA TO REVIEW VERIFICATION SCREEN FIRST ---
         async function submitData() {
             playSound('tap');
-            const inputs = document.querySelectorAll('.dynamic-input');
-            let isComplete = true;
+            
+            // Check terms checkbox status
+            var tncCheck = document.getElementById('remote-tnc-checkbox');
+            if (tncCheck && !tncCheck.checked) {
+                openMessageBox("Terms & Conditions Required", "You must agree to the Terms & Conditions and Data Privacy Act to proceed.", "error");
+                return;
+            }
+
+            var inputs = document.querySelectorAll('.dynamic-input');
+            var isComplete = true;
 
             inputs.forEach(input => {
-                const label = input.getAttribute('data-key');
+                var label = input.getAttribute('data-key');
                 if (!input.value) {
                     isComplete = false;
                     input.classList.add('border-red-500');
@@ -759,12 +794,12 @@
             if (!isComplete) return alert("Please fill all fields to proceed.");
 
             // Construct preview verification rows dynamically
-            const previewContainer = document.getElementById('preview-form-fields');
+            var previewContainer = document.getElementById('preview-form-fields');
             previewContainer.innerHTML = "";
 
             Object.entries(lastFormData).forEach(([key, val]) => {
-                const translatedKey = dict[currentLang].fields[key] || key;
-                const row = document.createElement('div');
+                var translatedKey = dict[currentLang].fields[key] || key;
+                var row = document.createElement('div');
                 row.className = "flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 border-b border-slate-100 gap-1 sm:gap-0";
                 row.innerHTML = `
                     <span class="text-xs md:text-sm text-slate-500 font-semibold tracking-wide">${translatedKey}</span>
@@ -774,7 +809,7 @@
             });
 
             // Populate Document Type, Fee and Transaction Code details inside Review Block
-            const docTitle = dict[currentLang].docTypes[currentDocType] || currentDocType;
+            var docTitle = dict[currentLang].docTypes[currentDocType] || currentDocType;
             document.getElementById('prev-type').innerText = docTitle;
             document.getElementById('prev-id').innerText = activeTxnId;
             document.getElementById('prev-fee').innerText = currentFee === 0 ? "0.00" : currentFee + ".00";
@@ -785,15 +820,15 @@
         // --- FINAL CONFIRMATION & QR CODE API GENERATION ---
         async function confirmAndGenerateQR() {
             playSound('tap');
-            const btn = document.querySelector('button[onclick="confirmAndGenerateQR()"]');
-            const originalText = btn.innerHTML;
+            var btn = document.querySelector('button[onclick="confirmAndGenerateQR()"]');
+            var originalText = btn.innerHTML;
             btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-2"></i> Generating QR...`;
             btn.disabled = true;
 
-            const docTitle = dict[currentLang].docTypes[currentDocType] || currentDocType;
+            var docTitle = dict[currentLang].docTypes[currentDocType] || currentDocType;
 
             try {
-                const response = await fetch('/api/submit', {
+                var response = await fetch('/api/submit', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         docType: currentDocType, 
@@ -803,7 +838,7 @@
                     })
                 });
 
-                const result = await response.json();
+                var result = await response.json();
                 
                 if(result.success) {
                     document.getElementById('success-id').innerText = result.transactionId;
@@ -833,6 +868,20 @@
                 btn.disabled = false;
             }
         }
+
+        // Terms & Conditions Modal functions
+        window.showTncModal = function() {
+            playSound('tap');
+            document.getElementById('tnc-modal').style.display = 'flex';
+        };
+        window.closeTncModal = function() {
+            playSound('tap');
+            document.getElementById('tnc-modal').style.display = 'none';
+        };
+        window.toggleRemoteTnc = function(checkbox) {
+            playSound('tap');
+            console.log("Terms agreement status changed to: " + checkbox.checked);
+        };
     </script>
 </body>
 </html>

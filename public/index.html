@@ -35,7 +35,7 @@
         .form-control:focus { border-color: #0f766e; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.1); }
         select.form-control { cursor: pointer; appearance: none; }
 
-        #camera-modal, #modal-id-selector, #custom-message-box { 
+        #camera-modal, #modal-id-selector, #custom-message-box, #tnc-modal { 
             display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; 
             background:rgba(2, 6, 23, 0.85); backdrop-filter: blur(8px); z-index:9999; 
             justify-content:center; align-items:center; 
@@ -366,43 +366,61 @@
 
     </main>
 
-    <!-- Modal Id Selector -->
-
-    <div id="modal-id-selector">
+   <div id="modal-id-selector">
         <div class="bg-white rounded-[2rem] p-8 shadow-2xl max-w-md w-full border border-slate-100 text-center">
             <div class="h-16 w-16 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-teal-100 shadow-inner">
                 <i class="fa-solid fa-fingerprint"></i>
             </div>
-            <h4 class="heading-font text-xl font-extrabold text-slate-800 mb-2">Choose Application Method</h4>
-            <p class="text-slate-500 text-sm mb-6 leading-relaxed">Choose whether you want to scan your local ID for automatic form filling or type your details manually.</p>
+            <h4 class="heading-font text-xl font-extrabold text-slate-800 mb-2" data-i18n="chooseMethod">Choose Application Method</h4>
+            <p class="text-slate-500 text-sm mb-6 leading-relaxed" data-i18n="chooseMethodDesc">Choose whether you want to scan your local ID for automatic form filling or type your details manually.</p>
             
-            <div class="grid grid-cols-1 gap-4">
+            <div class="mb-6 text-left bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <label class="flex items-start space-x-3 cursor-pointer">
+                    <input type="checkbox" id="tnc-checkbox" onchange="toggleTnc(this)" class="mt-0.5 w-5 h-5 text-teal-600 rounded focus:ring-teal-500">
+                    <span class="text-xs text-slate-600 leading-tight"><span data-i18n="agreeTnc1">I agree to the</span> <a href="#" onclick="showTncModal(); return false;" class="text-teal-600 font-bold underline" data-i18n="agreeTncLink">Terms & Conditions</a> <span data-i18n="agreeTnc2">and consent to the collection of my data under the Data Privacy Act.</span></span>
+                </label>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4" id="id-buttons" style="opacity: 0.4; pointer-events: none;">
                 <button onclick="chooseAIScan('National_ID')" class="group bg-slate-50 hover:bg-teal-50 border-2 border-slate-200/60 hover:border-teal-500 p-4 rounded-2xl text-left flex items-center space-x-4 transition-all">
                     <div class="bg-teal-100 text-teal-700 p-2.5 rounded-xl"><i class="fa-solid fa-hotel text-lg"></i></div>
                     <div>
-                        <strong class="font-bold text-slate-800 block text-sm">National ID / PhilSys Card</strong>
-                        <span class="text-xs text-slate-400">Official Philippine ID</span>
+                        <strong class="font-bold text-slate-800 block text-sm" data-i18n="nationalId">National ID / PhilSys Card</strong>
+                        <span class="text-xs text-slate-400" data-i18n="officialPhId">Official Philippine ID</span>
                     </div>
                 </button>
 
                 <button onclick="chooseAIScan('PhilHealth')" class="group bg-slate-50 hover:bg-teal-50 border-2 border-slate-200/60 hover:border-teal-500 p-4 rounded-2xl text-left flex items-center space-x-4 transition-all">
                     <div class="bg-teal-100 text-teal-700 p-2.5 rounded-xl"><i class="fa-solid fa-address-card text-lg"></i> </div>
                     <div>
-                        <strong class="font-bold text-slate-800 block text-sm">PhilHealth Member ID</strong>
-                        <span class="text-xs text-slate-400">Health Insurance Card</span>
+                        <strong class="font-bold text-slate-800 block text-sm" data-i18n="philhealthId">PhilHealth Member ID</strong>
+                        <span class="text-xs text-slate-400" data-i18n="healthCard">Health Insurance Card</span>
                     </div>
                 </button>
 
                 <button onclick="proceedToForm()" class="group bg-emerald-50 hover:bg-emerald-100 border-2 border-slate-200/60 hover:border-emerald-500 p-4 rounded-2xl text-left flex items-center space-x-4 transition-all">
                     <div class="bg-emerald-200 text-emerald-800 p-2.5 rounded-xl"><i class="fa-solid fa-keyboard text-lg"></i></div>
                     <div>
-                        <strong class="font-bold text-slate-800 block text-sm">Enter Manually</strong>
-                        <span class="text-xs text-slate-500">Manual Input via Keyboard</span>
+                        <strong class="font-bold text-slate-800 block text-sm" data-i18n="enterManually">Enter Manually</strong>
+                        <span class="text-xs text-slate-500" data-i18n="manualInput">Manual Input via Keyboard</span>
                     </div>
                 </button>
                 
-                <button onclick="closeChoiceModals()" class="text-xs text-slate-400 hover:text-slate-600 font-bold mt-2 py-2">Go Back</button>
+                <button onclick="closeChoiceModals()" class="text-xs text-slate-400 hover:text-slate-600 font-bold mt-2 py-2" data-i18n="goBack">Go Back</button>
             </div>
+        </div>
+    </div>
+
+    <div id="tnc-modal">
+        <div class="bg-white rounded-[2rem] p-8 shadow-2xl max-w-lg w-full border border-slate-100 flex flex-col max-h-[80vh]">
+            <h2 class="heading-font text-2xl font-extrabold text-slate-800 mb-2 border-b border-slate-200 pb-4"><i class="fa-solid fa-scale-balanced text-teal-600 mr-2"></i> Terms & Conditions</h2>
+            <div class="overflow-y-auto pr-2 my-4 text-sm text-slate-600 space-y-4">
+                <p><strong>1. Data Collection & Privacy</strong><br>By using this Kiosk, you consent to the collection and processing of your personal information strictly for the issuance of Barangay Documents in accordance with the Data Privacy Act of 2012 (R.A. 10173).</p>
+                <p><strong>2. Accuracy of Information</strong><br>You certify that all information provided is true and correct. Falsification of public documents is punishable by law.</p>
+                <p><strong>3. Data Retention</strong><br>Your document data is encrypted and automatically wiped from our active servers within 24 hours of printing to ensure your privacy.</p>
+                <p><strong>4. AI Image Processing</strong><br>If you choose to scan your ID, the image is processed securely by our local AI server and is not permanently stored or shared with any third party.</p>
+            </div>
+            <button onclick="closeTncModal()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl shadow transition-all mt-2">I Understand</button>
         </div>
     </div>
 
@@ -412,7 +430,6 @@
             <p id="camera-instructions" class="text-red-500 font-bold mb-6 text-sm bg-red-50 py-2 px-4 rounded-xl"></p>
             <video id="webcam-video" autoplay playsinline class="w-full rounded-2xl shadow-inner border-4 border-slate-100 bg-black h-64 object-cover mb-6"></video>
             <canvas id="webcam-canvas" style="display:none;"></canvas>
-            
             <button class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl shadow-lg text-lg mb-3 transition-all" onclick="captureAndProcessID()">Take Picture & Process</button>
             <button class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-2xl transition-all" onclick="closeCameraModal()">Cancel</button>
             <p id="camera-status" class="text-teal-700 font-bold mt-4 h-6 text-sm"></p>
@@ -431,8 +448,6 @@
     </div>
 
     <script src="kioskboard-2.3.0.min.js"></script>
-    <script src="script.js"></script>...
-
-    
+    <script src="script.js"></script>
 </body>
 </html>

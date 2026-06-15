@@ -41,35 +41,150 @@
             localStorage.setItem("admin_password", "admin123");
         }
 
-        const TRANSLATIONS = {
+       const TRANSLATIONS = {
             en: {
-                welcome: "Welcome to Sto. Niño Portal",
-                subwelcome: "Please choose the document you would like to process today.",
-                clearanceTitle: "Barangay Clearance",
-                clearanceDesc: "Residency, travel, and moral standing clearance.",
-                indigencyTitle: "Certificate of Indigency",
-                indigencyDesc: "For low-income financial assistance needs.",
-                residencyTitle: "Certificate of Residency",
-                residencyDesc: "Proof of address and long-term residency.",
-                businessTitle: "Barangay Business Permit",
-                businessDesc: "License permit to run a business in Sto. Niño.",
-                screensaverBtn: "Screensaver"
+                opMode: "Operational Mode", fastSecure: "Fast & Secure Processing",
+                welcome: "Touch Screen to Begin", subwelcome: "Request, review, and print receipts for Barangay Documents instantly.",
+                assistDesk: "Assistance Desk", timeDate: "Time & Date",
+                docServices: "Document Services", selectTitle: "Select Document Type",
+                clearanceTitle: "Barangay Clearance", clearanceDesc: "Residency and moral standing.",
+                indigencyTitle: "Certificate of Indigency", indigencyDesc: "Low-income financial assistance.",
+                residencyTitle: "Certificate of Residency", residencyDesc: "Proof of address.",
+                businessTitle: "Business Permit", businessDesc: "License to operate.", free: "FREE",
+                screensaverBtn: "Screensaver", modeIndicator: "English Mode",
+                fillDetails: "Please fill out the details completely.", processingFee: "Processing Fee",
+                cancelBtn: "Cancel", proceedBtn: "Proceed to Assessment",
+                chooseMethod: "Choose Application Method", chooseMethodDesc: "Choose whether you want to scan your local ID for automatic form filling or type your details manually.",
+                agreeTnc1: "I agree to the", agreeTncLink: "Terms & Conditions", agreeTnc2: "and consent to the collection of my data under the Data Privacy Act.",
+                nationalId: "National ID / PhilSys Card", officialPhId: "Official Philippine ID",
+                philhealthId: "PhilHealth Member ID", healthCard: "Health Insurance Card",
+                enterManually: "Enter Manually", manualInput: "Manual Input via Keyboard", goBack: "Go Back",
+                iUnderstand: "I Understand", scanId: "Scan ID", takePicProcess: "Take Picture & Process",
+                notificationTitle: "Notification", understoodBtn: "Understood",
+                reviewData: "Review Data", validateTitle: "Validate Transaction Details", validateSub: "Please review the details below before proceeding to generate receipt & barcode.",
+                enteredInfo: "Entered Information", verifiedFields: "Verified Fields",
+                kioskReceiptSum: "Kiosk Receipt Summary", docTypeLabel: "Document Type:", txnIdLabel: "Transaction ID:",
+                convCharge: "Convenience Charge:", freeIncluded: "Free (Included)", totalFee: "Total Fee:",
+                finalizeAgree: "By finalizing, you approve the transmission of these records to local government servers.",
+                backToForm: "Back to Form", finalizePrint: "Finalize & Print",
+                txnSubmitted: "Transaction Submitted!", txnLogged: "Your application has been logged on the barangay master registry database. Your transaction reference pass is compiled below for quick desktop verification or over-the-counter scanning.",
+                dispensingReceipt: "Dispensing Thermal Receipt...", whatNext: "What to do next:",
+                presentLayout: "Present this digital screen layout or reference ID at the Cashier Window to authorize layout clearance, finish payment and claim your documents.",
+                printerOffline: "RECEIPT PRINTER OFFLINE", takePicture: "Please take a picture of this QR code with your smartphone.",
+                doneNext: "DONE (Next User)", kioskReceiptTitle: "Brgy. Sto. Niño Kiosk", terminalNumber: "Terminal #01",
+                dateTime: "Date/Time:", refId: "Ref ID:", proceedCashier: "Please proceed to cashier counter for cash payout.",
+                thankYou: "*** MARAMING SALAMAT ***", poweredBy: "powered by Brgy. Sto. Niño digital services",
+                // Dynamic Fields mapping
+                "Applicant Name": "Applicant Name", "Complete Address": "Complete Address", "Date of Birth": "Date of Birth",
+                "Civil Status": "Civil Status", "Purpose of Request": "Purpose of Request",
+                "Estimated Monthly Income": "Estimated Monthly Income", "Years of Residency": "Years of Residency",
+                "Owner Full Name": "Owner Full Name", "Business Name": "Business Name", "Business Address": "Business Address",
+                "Nature of Business": "Nature of Business", "Business Scale": "Business Scale", "Contact Number": "Contact Number",
+                "Select an option...": "Select an option..."
             },
             ph: {
-                welcome: "Maligayang Pagdating sa Sto. Niño Portal",
-                subwelcome: "Piliin ang dokumento na nais mong iproseso ngayon.",
-                clearanceTitle: "Barangay Clearance",
-                clearanceDesc: "Sertipiko ng paninirahan, paglalakbay, at mabuting asal.",
-                indigencyTitle: "Sertipiko ng Indigency",
-                indigencyDesc: "Para sa tulong-pinansyal sa mga may mababang kita.",
-                residencyTitle: "Sertipiko ng Paninirahan",
-                residencyDesc: "Katunayan ng tirahan at matagal na paninirahan.",
-                businessTitle: "Permit sa Negosyo ng Barangay",
-                businessDesc: "Lisensya para magpatakbo ng negosyo sa Sto. Niño.",
-                screensaverBtn: "Screensaver"
+                opMode: "Paraan ng Operasyon", fastSecure: "Mabilis at Ligtas na Pagproseso",
+                welcome: "Pindutin ang Screen", subwelcome: "Mabilis na makakuha at mag-print ng resibo para sa mga Dokumento ng Barangay.",
+                assistDesk: "Tulong na Mesa", timeDate: "Oras at Petsa",
+                docServices: "Serbisyo ng Dokumento", selectTitle: "Pumili ng Dokumento",
+                clearanceTitle: "Barangay Clearance", clearanceDesc: "Sertipiko ng paninirahan at mabuting asal.",
+                indigencyTitle: "Sertipiko ng Indigency", indigencyDesc: "Tulong-pinansyal sa mababang kita.",
+                residencyTitle: "Sertipiko ng Paninirahan", residencyDesc: "Katunayan ng tirahan.",
+                businessTitle: "Permit sa Negosyo", businessDesc: "Lisensya para magpatakbo ng negosyo.", free: "LIBRE",
+                screensaverBtn: "Bumalik (Screensaver)", modeIndicator: "Tagalog Mode",
+                fillDetails: "Mangyaring punan ang lahat ng detalye nang kumpleto.", processingFee: "Bayad sa Pagproseso",
+                cancelBtn: "Kanselahin", proceedBtn: "Magpatuloy sa Pagsusuri",
+                chooseMethod: "Pumili ng Paraan ng Aplikasyon", chooseMethodDesc: "Pumili kung nais i-scan ang ID o i-type ang mga detalye nang mano-mano.",
+                agreeTnc1: "Sumasang-ayon ako sa", agreeTncLink: "Mga Tuntunin at Kundisyon", agreeTnc2: "at pumapayag sa pagkolekta ng aking datos.",
+                nationalId: "National ID / PhilSys Card", officialPhId: "Opisyal na ID ng Pilipinas",
+                philhealthId: "ID ng PhilHealth", healthCard: "Kard ng Health Insurance",
+                enterManually: "I-type Mano-mano", manualInput: "Paggamit ng Keyboard", goBack: "Bumalik",
+                iUnderstand: "Naiintindihan Ko", scanId: "I-scan ang ID", takePicProcess: "Kumuha ng Larawan at I-proseso",
+                notificationTitle: "Abiso ng Sistema", understoodBtn: "Naiintindihan",
+                reviewData: "Suriin ang Datos", validateTitle: "I-validate ang Transaksyon", validateSub: "Suriin ang mga detalye bago mag-generate ng resibo at barcode.",
+                enteredInfo: "Impormasyong Inilagay", verifiedFields: "Mga Beripikadong Field",
+                kioskReceiptSum: "Buod ng Resibo", docTypeLabel: "Uri ng Dokumento:", txnIdLabel: "ID ng Transaksyon:",
+                convCharge: "Bayad sa Serbisyo:", freeIncluded: "Libre (Kasama)", totalFee: "Kabuuang Bayad:",
+                finalizeAgree: "Sa pagpapatuloy, pinapayagan mo ang pagpapadala ng rekord na ito sa lokal na pamahalaan.",
+                backToForm: "Bumalik sa Form", finalizePrint: "Tapusin at I-print",
+                txnSubmitted: "Naipadala na ang Transaksyon!", txnLogged: "Naitala na ang iyong aplikasyon. Gamitin ang reference ID sa ibaba para sa Cashier.",
+                dispensingReceipt: "Nagpi-print ng Resibo...", whatNext: "Ano ang susunod na gagawin:",
+                presentLayout: "Ipakita ito sa Cashier upang makuha ang dokumento.",
+                printerOffline: "WALANG KONEKSYON ANG PRINTER", takePicture: "Picturan ang QR code na ito gamit ang cellphone.",
+                doneNext: "TAPOS NA (Susunod na User)", kioskReceiptTitle: "Kiosk ng Brgy. Sto. Niño", terminalNumber: "Terminal #01",
+                dateTime: "Petsa/Oras:", refId: "ID Number:", proceedCashier: "Magtungo sa cashier upang magbayad.",
+                thankYou: "*** MARAMING SALAMAT ***", poweredBy: "hatid ng Brgy. Sto. Niño digital services",
+                // Dynamic Fields mapping (Tagalog Translations)
+                "Applicant Name": "Pangalan ng Aplikante", "Complete Address": "Kumpletong Address", "Date of Birth": "Araw ng Kapanganakan",
+                "Civil Status": "Katayuang Sibil", "Purpose of Request": "Layunin ng Pagkuha",
+                "Estimated Monthly Income": "Tinatayang Buwanang Kita", "Years of Residency": "Bilang ng Taon na Naninirahan",
+                "Owner Full Name": "Pangalan ng May-ari", "Business Name": "Pangalan ng Negosyo", "Business Address": "Address ng Negosyo",
+                "Nature of Business": "Uri ng Negosyo", "Business Scale": "Sukat ng Negosyo", "Contact Number": "Numero ng Telepono",
+                "Select an option...": "Pumili ng isa..."
             }
         };
 
+        window.toggleLanguage = function(lang) {
+            kioskLanguage = lang;
+            playSound('tap');
+            
+            const btnEn = document.getElementById("lang-btn-en");
+            const btnPh = document.getElementById("lang-btn-ph");
+            const baseClass = "px-5 py-2.5 rounded-2xl font-bold transition-all text-xs md:text-sm shadow-sm w-full sm:w-auto ";
+            
+            if (lang === "en") {
+                btnEn.className = baseClass + "bg-teal-700 text-white border border-teal-700";
+                btnPh.className = baseClass + "bg-white/85 text-slate-700 border border-slate-200 hover:bg-white";
+            } else {
+                btnPh.className = baseClass + "bg-teal-700 text-white border border-teal-700";
+                btnEn.className = baseClass + "bg-white/85 text-slate-700 border border-slate-200 hover:bg-white";
+            }
+            
+            // Loop through all static data-i18n elements
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(TRANSLATIONS[lang][key]) el.innerHTML = TRANSLATIONS[lang][key];
+            });
+
+            // Re-render Dynamic labels if form is active
+            if(document.getElementById('page-form').classList.contains('active-page') || document.getElementById('page-preview').classList.contains('active-page')){
+                generateDynamicForm(null, true); // True flag = retain user values, just swap labels
+            }
+        };
+
+        // CUSTOM ALERTS
+        window.openMessageBox = function(title, text, type = "info") {
+            document.getElementById('msg-box-title').innerText = title;
+            document.getElementById('msg-box-text').innerText = text;
+            const iconContainer = document.getElementById('msg-box-icon-container');
+            const icon = document.getElementById('msg-box-icon');
+            
+            if (type === "error") {
+                iconContainer.className = "h-16 w-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-red-100 shadow-inner";
+                icon.className = "fa-solid fa-triangle-exclamation";
+                playSound("error");
+            } else {
+                iconContainer.className = "h-16 w-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-blue-100 shadow-inner";
+                icon.className = "fa-solid fa-circle-info";
+                playSound("tap");
+            }
+            document.getElementById('custom-message-box').style.display = 'flex';
+        }
+
+        window.closeMessageBox = function() {
+            playSound("tap");
+            document.getElementById('custom-message-box').style.display = 'none';
+        }
+
+        window.alert = function(msg) {
+            if (msg.includes("fill all fields")) {
+                document.querySelectorAll('.dynamic-input').forEach(input => {
+                    if (!input.value) input.classList.add('border-red-500');
+                    else input.classList.remove('border-red-500');
+                });
+            }
+            openMessageBox(kioskLanguage==='ph' ? "Abiso ng Sistema" : "Notification", msg, "error");
+        };
         // --- STREAMING_CHUNK: Initializing Tone Synthesizers with scheduling safeguards... ---
         let synth;
         try {

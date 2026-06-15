@@ -53,7 +53,6 @@ function decrypt(encryptedText) {
 const db = new sqlite3.Database('./kiosk.db');
 
 db.serialize(() => {
-    // 1. Create tables if they don't exist at all
     db.run(`CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         transaction_id TEXT UNIQUE,
@@ -77,23 +76,22 @@ db.serialize(() => {
         setting_value TEXT
     )`);
 
-    // 2. AUTO-MIGRATION: Safely inject missing columns to fix the 500 Server Error
     db.all("PRAGMA table_info(transactions)", (err, rows) => {
         if (!err && rows) {
-            const hasKioskStartTime = rows.some(r => r.name === 'kiosk_start_time');
-            const hasCompletedAt = rows.some(r => r.name === 'completed_at');
-            
-            if (!hasKioskStartTime) db.run("ALTER TABLE transactions ADD COLUMN kiosk_start_time INTEGER");
-            if (!hasCompletedAt) db.run("ALTER TABLE transactions ADD COLUMN completed_at INTEGER");
+            const cols = rows.map(r => r.name);
+            if (!cols.includes('kiosk_start_time')) db.run("ALTER TABLE transactions ADD COLUMN kiosk_start_time INTEGER");
+            if (!cols.includes('completed_at')) db.run("ALTER TABLE transactions ADD COLUMN completed_at INTEGER");
+            if (!cols.includes('source')) db.run("ALTER TABLE transactions ADD COLUMN source TEXT DEFAULT 'UNKNOWN'");
+            if (!cols.includes('print_count')) db.run("ALTER TABLE transactions ADD COLUMN print_count INTEGER DEFAULT 0");
+            if (!cols.includes('last_control_number')) db.run("ALTER TABLE transactions ADD COLUMN last_control_number TEXT");
         }
     });
 
-    // 3. SEED DATA
     db.run(`INSERT OR IGNORE INTO users (username, password, name, role) VALUES ('admin', 'admin123', 'System Administrator', 'admin')`);
     db.run(`INSERT OR IGNORE INTO users (username, password, name, role) VALUES ('maria_c', 'password123', 'Cashier Maria', 'cashier')`);
 
-    db.run(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES ('SCANNER_COM_PORT', 'COM3')`);
-    db.run(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES ('ESP32_COM_PORT', 'COM4')`);
+    db.run(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES ('SCANNER_COM_PORT', 'COM7')`);
+    db.run(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES ('ESP32_COM_PORT', 'COM8')`);
 });
 
 // --- HOT-SWAPPABLE HARDWARE MANAGEMENT ---
@@ -113,41 +111,51 @@ function reconnectHardware() {
         try {
             esp32Port = new SerialPort({ path: config.ESP32_COM_PORT, baudRate: 115200 });
             esp32Port.on('error', (err) => console.error(`[ESP32] Port Error: ${err.message}`));
-            console.log(`[HARDWARE] ESP32 mapped to ${config.ESP32_COM_PORT}`);
-        } catch (e) { console.error(`[HARDWARE] Failed to connect ESP32 to ${config.ESP32_COM_PORT}`); }
+        } catch (e) { }
 
         try {
             scannerPort = new SerialPort({ path: config.SCANNER_COM_PORT, baudRate: 9600 });
             const parser = scannerPort.pipe(new ReadlineParser({ delimiter: '\r' }));
             scannerPort.on('error', (err) => console.error(`[SCANNER] Port Error: ${err.message}`));
-            console.log(`[HARDWARE] Scanner mapped to ${config.SCANNER_COM_PORT}`);
 
             parser.on('data', (scannedData) => {
                 const cleanQR = scannedData.trim();
                 const decryptedId = decrypt(cleanQR);
+                
                 if (!decryptedId) {
-                    updateEsp32Screen("ERROR:INVALID OR TAMPERED QR");
+                    updateEsp32Screen("ERROR:INVALID QR CODE");
                     return sendUpdateToA4Webpage({ success: false, message: "INVALID OR TAMPERED QR" });
                 }
 
                 db.get(`SELECT * FROM transactions WHERE transaction_id = ?`, [decryptedId], async (err, row) => {
-                    if (err || !row) return sendUpdateToA4Webpage({ success: false, message: "Not found." });
-                    if (row.status === 'PENDING') return sendUpdateToA4Webpage({ success: false, message: "NOT PAID YET. See Cashier." });
-                    if (row.status === 'COMPLETED') return sendUpdateToA4Webpage({ success: false, message: "ALREADY PRINTED. See Cashier for reprint." });
+                    if (err || !row) {
+                        updateEsp32Screen("ERROR:NOT FOUND");
+                        return sendUpdateToA4Webpage({ success: false, message: "Not found." });
+                    }
+                    if (row.status === 'PENDING') {
+                        updateEsp32Screen("ERROR:NOT PAID YET");
+                        return sendUpdateToA4Webpage({ success: false, message: "NOT PAID YET. See Cashier." });
+                    }
                     
                     updateEsp32Screen("DONE");
                     sendUpdateToA4Webpage({ success: true, dbData: row });
 
                     const now = Date.now();
-                    db.run(`UPDATE transactions SET status = 'COMPLETED', completed_at = ? WHERE transaction_id = ?`, [now, decryptedId]);
+                    const newPrintCount = (row.print_count || 0) + 1;
+                    const newControlNum = `CTRL-${now.toString().slice(-6)}-${newPrintCount}`;
+                    
+                    db.run(`UPDATE transactions SET status = 'COMPLETED', completed_at = ?, print_count = ?, last_control_number = ? WHERE transaction_id = ?`, 
+                           [now, newPrintCount, newControlNum, decryptedId]);
 
                     try {
+                        row.print_count = newPrintCount; 
+                        row.last_control_number = newControlNum;
                         await generateAndPrintA4(row);
-                        setTimeout(() => { updateEsp32Screen("WAITING"); }, 5000); 
+                        setTimeout(() => { updateEsp32Screen("WAITING"); }, 15000); 
                     } catch (printErr) {}
                 });
             });
-        } catch (e) { console.error(`[HARDWARE] Failed to connect Scanner to ${config.SCANNER_COM_PORT}`); }
+        } catch (e) { }
     });
 }
 
@@ -241,7 +249,9 @@ function generateAndPrintA4(transactionRow) {
         doc.moveDown(5);
         doc.font('Helvetica-Bold').text('JOHNNY C. CO', { align: 'right' });
         doc.font('Helvetica').text('Punong Barangay        ', { align: 'right' });
-        doc.fontSize(8).fillColor('gray').text(`TXN: ${transactionRow.transaction_id}`, 50, 750);
+        
+        let reprintText = (transactionRow.print_count > 1) ? ` | REPRINT: ${transactionRow.print_count - 1}` : "";
+        doc.fontSize(8).fillColor('gray').text(`TXN: ${transactionRow.transaction_id} | CTRL: ${transactionRow.last_control_number} | SOURCE: ${transactionRow.source || 'UNKNOWN'}${reprintText}`, 50, 750);
         doc.end();
 
         stream.on('finish', () => {
@@ -250,7 +260,6 @@ function generateAndPrintA4(transactionRow) {
     });
 }
 
-// --- STANDARD KIOSK APIS ---
 app.post('/api/ai-scan', async (req, res) => {
     const payload = JSON.stringify(req.body);
     try {
@@ -277,16 +286,17 @@ app.post('/api/login', (req, res) => {
 });
 
 app.post('/api/submit', (req, res) => {
-    const { docType, formData, kioskStartTime } = req.body;
+    const { docType, formData, kioskStartTime, source } = req.body;
     const now = Date.now();
     const transactionId = `DOC-${now.toString().slice(-6)}-${uuidv4().split('-')[0].toUpperCase()}`;
     const jsonData = JSON.stringify(formData);
     const userName = formData['Applicant Name'] || formData['Full Name'] || formData['Business Owner Name'] || formData['Owner Full Name'] || Object.values(formData)[0] || 'Unknown';
     const startTime = kioskStartTime || now;
+    const entrySource = source || 'UNKNOWN';
 
-    db.run(`INSERT INTO transactions (transaction_id, user_name, doc_type, document_data, status, kiosk_start_time, created_at) 
-            VALUES (?, ?, ?, ?, 'PENDING', ?, ?)`, 
-        [transactionId, userName, docType, jsonData, startTime, now], function(err) {
+    db.run(`INSERT INTO transactions (transaction_id, user_name, doc_type, document_data, status, kiosk_start_time, created_at, source) 
+            VALUES (?, ?, ?, ?, 'PENDING', ?, ?, ?)`, 
+        [transactionId, userName, docType, jsonData, startTime, now, entrySource], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true, transactionId, docType, encryptedQR: encrypt(transactionId) });
     });
@@ -300,7 +310,10 @@ app.post('/api/print-receipt', async (req, res) => {
         printer.println("Document Request Slip"); printer.drawLine(); printer.alignLeft();
         printer.println(`Type: ${docType}`); printer.println(`Fee: P${totalAmount}`); printer.drawLine();
         printer.alignCenter(); printer.println("Please present this QR"); printer.println("code to the cashier."); printer.newLine();
-        printer.printQR(encryptedQR, { cellSize: 6 }); printer.newLine(); printer.cut();
+        printer.printQR(encryptedQR, { cellSize: 6 }); 
+        printer.newLine(); printer.newLine(); printer.newLine(); printer.newLine(); 
+        printer.cut();
+        
         fs.writeFileSync('\\\\localhost\\POS-58', printer.getBuffer());
         res.json({ success: true, printerFailed: false });
     } catch (error) {
@@ -338,19 +351,38 @@ app.post('/api/cashier-action', (req, res) => {
     }
 });
 
+// --- UPDATED: Advanced filtering enabled for the cashier dashboard ---
 app.post('/api/cashier-history', (req, res) => {
-    const { cashierName, dateStr } = req.body; 
-    const startOfDay = new Date(`${dateStr}T00:00:00`).getTime();
-    const endOfDay = new Date(`${dateStr}T23:59:59.999`).getTime();
-    db.all(`SELECT transaction_id, user_name, doc_type, status, created_at FROM transactions WHERE cashier_name LIKE ? AND created_at >= ? AND created_at <= ? ORDER BY created_at DESC`,
-        [`${cashierName}%`, startOfDay, endOfDay], (err, rows) => {
-            res.json({ success: !err, history: rows || [] });
-        });
+    const { cashierName, dateStr, searchQuery, docType, source } = req.body; 
+    let query = `SELECT * FROM transactions WHERE cashier_name LIKE ?`;
+    let params = [`${cashierName}%`];
+
+    if (dateStr) {
+        const startOfDay = new Date(`${dateStr}T00:00:00`).getTime();
+        const endOfDay = new Date(`${dateStr}T23:59:59.999`).getTime();
+        query += ` AND created_at >= ? AND created_at <= ?`;
+        params.push(startOfDay, endOfDay);
+    }
+    if (searchQuery) {
+        query += ` AND (transaction_id LIKE ? OR user_name LIKE ?)`;
+        params.push(`%${searchQuery}%`, `%${searchQuery}%`);
+    }
+    if (docType) {
+        query += ` AND doc_type = ?`;
+        params.push(docType);
+    }
+    if (source) {
+        query += ` AND source = ?`;
+        params.push(source);
+    }
+
+    db.all(query + ` ORDER BY created_at DESC`, params, (err, rows) => {
+        res.json({ success: !err, history: rows || [] });
+    });
 });
 
-// --- ADMIN APIS ---
 app.get('/api/admin/logs', (req, res) => {
-    db.all(`SELECT transaction_id, user_name, doc_type, status, cashier_name, kiosk_start_time, created_at, completed_at FROM transactions ORDER BY created_at DESC`, [], (err, rows) => {
+    db.all(`SELECT transaction_id, user_name, doc_type, status, cashier_name, kiosk_start_time, created_at, completed_at, source, print_count, last_control_number FROM transactions ORDER BY created_at DESC`, [], (err, rows) => {
         if (err) return res.json({ success: false, message: err.message });
         res.json({ success: true, logs: rows });
     });
@@ -358,6 +390,12 @@ app.get('/api/admin/logs', (req, res) => {
 
 app.get('/api/admin/cashiers', (req, res) => {
     db.all(`SELECT username, name, role FROM users WHERE role = 'cashier'`, [], (err, rows) => {
+        res.json({ success: !err, cashiers: rows || [] });
+    });
+});
+
+app.get('/api/admin/cashier-list', (req, res) => {
+    db.all(`SELECT name FROM users WHERE role = 'cashier'`, [], (err, rows) => {
         res.json({ success: !err, cashiers: rows || [] });
     });
 });
@@ -393,7 +431,6 @@ app.post('/api/admin/settings', (req, res) => {
     });
 });
 
-// Data Privacy Sweeper
 setInterval(() => {
     const oneHourAgo = Date.now() - (60 * 60 * 1000); 
     db.run(`UPDATE transactions SET document_data = NULL WHERE status = 'COMPLETED' AND completed_at <= ? AND document_data IS NOT NULL`, [oneHourAgo]);
