@@ -655,15 +655,23 @@ async function submitData() {
 
     if (!isComplete) return alert("Please fill all fields to proceed.");
 
-    // Send the data, including the time they started, to the server
-    // Mocking the backend response to fix fetch error in canvas
-    const result = await new Promise(resolve => setTimeout(() => {
-        resolve({
-            success: true,
-            transactionId: "SN-" + Math.floor(1000 + Math.random() * 9000),
-            encryptedQR: "QR-" + Date.now()
+    // Send the data, including the document type and fee, to the real server
+    let result;
+    try {
+        const response = await fetch('/api/submit', { // NOTE: Change '/api/submit' to your exact server.js route if different
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                formData: formData,
+                docType: currentDocType,
+                fee: currentFee
+            })
         });
-    }, 800));
+        result = await response.json();
+    } catch (error) {
+        console.error("Submission failed:", error);
+        return alert("Failed to connect to the server.");
+    }
 
     if(result.success) {
         currentEncryptedQR = result.encryptedQR;
