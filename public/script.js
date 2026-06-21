@@ -1,4 +1,4 @@
-const KioskAudioManager = {
+        const KioskAudioManager = {
             play: function(soundType) {
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 const osc = audioCtx.createOscillator();

@@ -14,9 +14,6 @@
         .view-section.active { display: block; }
         .nav-item.active { background: #0f766e; color: white; }
         
-        /* ================================================= */
-        /* CUSTOM ADDED CSS START */
-        /* Admin Design Language & Glassmorphism */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.1); border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 10px; }
@@ -50,8 +47,6 @@
             box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
             transform: translateX(4px);
         }
-        /* CUSTOM ADDED CSS END */
-        /* ================================================= */
 
         /* High Fidelity Background Photo Overlay */
         .bg-blue-photo-overlay {
@@ -96,13 +91,8 @@
 
 <div class="animated-gradient-overlay"></div>
 
-<!-- MODERN LIGHT THEMED LOGIN SCREEN -->
-<!-- ================================================= -->
-<!-- CUSTOM ADDED HTML START -->
-<!-- Refactored Login Screen to match admin glass-panel design -->
 <div id="login-screen" class="flex items-center justify-center min-h-screen p-6 absolute inset-0 z-50 bg-transparent">
     <div class="w-full max-w-md glass-panel rounded-[2.5rem] shadow-2xl p-10 text-center relative overflow-hidden">
-        <!-- Decorative subtle glow -->
         <div class="absolute -top-12 -right-12 w-32 h-32 bg-teal-300 rounded-full blur-3xl opacity-40 pointer-events-none"></div>
         
         <div class="inline-flex bg-slate-900 text-teal-400 p-5 rounded-3xl mb-5 shadow-lg border border-slate-700 relative z-10">
@@ -127,14 +117,8 @@
         </button>
     </div>
 </div>
-<!-- CUSTOM ADDED HTML END -->
-<!-- ================================================= -->
 
 <div id="dashboard-layout" class="hidden flex h-screen w-full overflow-hidden relative z-20">
-    
-    <!-- ================================================= -->
-    <!-- CUSTOM ADDED HTML START -->
-    <!-- Redesigned Sidebar matching admin.html -->
     <div class="w-72 glass-panel-dark flex flex-col shadow-2xl z-30 shrink-0 border-r border-slate-700/50">
         <div class="p-8 border-b border-slate-800/80 flex flex-col gap-3">
             <h1 class="heading-font text-xl font-extrabold text-white flex items-center tracking-tight">
@@ -162,8 +146,6 @@
             </button>
         </div>
     </div>
-    <!-- CUSTOM ADDED HTML END -->
-    <!-- ================================================= -->
 
     <!-- MAIN DASHBOARD AREA -->
     <div class="flex-grow overflow-y-auto p-6 md:p-10 relative">
@@ -173,15 +155,14 @@
 
         <!-- VIEW: SCAN & VERIFY -->
         <div id="view-scan" class="view-section active max-w-5xl mx-auto pt-14 md:pt-4">
-            <span class="bg-teal-500/20 border border-teal-400/30 text-teal-300 text-[10px] md:text-xs font-extrabold px-3 py-1.5 rounded-full uppercase tracking-widest mb-3 inline-block">Audit Desk</span>
+            <div class="mb-6 md:mb-8 dashboard-header">
+                <span class="bg-teal-500/20 border border-teal-400/30 text-teal-300 text-[10px] md:text-xs font-extrabold px-3 py-1.5 rounded-full uppercase tracking-widest mb-3 inline-block">Audit Desk</span>
+                <h2 class="heading-font text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-md">Scan & Verify</h2>
+                <p class="text-teal-100/80 mt-1">Real-time document verification, status updating, and fraud prevention portal.</p>
+            </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                <!-- SCAN INPUT CARD -->
-                <!-- ================================================= -->
-                <!-- CUSTOM ADDED HTML START -->
                 <div class="lg:col-span-4 glass-panel p-8 rounded-[2rem] flex flex-col justify-between h-full">
-                <!-- CUSTOM ADDED HTML END -->
-                <!-- ================================================= -->
                     <div class="text-center py-4 flex-grow flex flex-col justify-center items-center">
                         <div class="bg-teal-50 border border-teal-100 p-5 rounded-[1.5rem] mb-5 shadow-sm">
                             <i class="fa-solid fa-barcode text-5xl text-teal-600"></i>
@@ -198,12 +179,7 @@
                     <div id="scan-feedback" class="mt-5 text-center text-sm font-bold h-6"></div>
                 </div>
 
-                <!-- DOCUMENT DETAILS CARD -->
-                <!-- ================================================= -->
-                <!-- CUSTOM ADDED HTML START -->
                 <div class="lg:col-span-8 glass-panel rounded-[2rem] overflow-hidden flex flex-col min-h-[500px]">
-                <!-- CUSTOM ADDED HTML END -->
-                <!-- ================================================= -->
                     <div class="p-6 md:p-8 border-b border-slate-100 bg-white/50 flex justify-between items-center shrink-0">
                         <h3 class="font-extrabold text-slate-800 flex items-center uppercase tracking-wider text-sm">
                             <i class="fa-solid fa-file-invoice mr-3 text-teal-600"></i> Document Details
@@ -228,18 +204,17 @@
         <!-- VIEW: HISTORY -->
         <div id="view-history" class="view-section max-w-6xl mx-auto pt-14 md:pt-4">
             <div class="mb-8 flex flex-col sm:flex-row justify-between sm:items-end gap-4">
-                <span class="bg-teal-500/20 border border-teal-400/30 text-teal-300 text-[10px] md:text-xs font-extrabold px-3 py-1.5 rounded-full uppercase tracking-widest mb-3 inline-block">Archived Records</span>
+                <div class="mb-6 md:mb-8 dashboard-header">
+                    <span class="bg-teal-500/20 border border-teal-400/30 text-teal-300 text-[10px] md:text-xs font-extrabold px-3 py-1.5 rounded-full uppercase tracking-widest mb-3 inline-block">Audit Desk</span>
+                    <h2 class="heading-font text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-md">Scan & Verify</h2>
+                    <p class="text-teal-100/80 mt-1">Real-time document verification, status updating, and fraud prevention portal.</p>
+                </div>
                 <button onclick="exportCashierCSV()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 px-6 rounded-2xl text-sm shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-2">
                     <i class="fa-solid fa-download"></i> Export Shift to CSV
                 </button>
             </div>
 
-            <!-- Modern Data Filter Grid -->
-            <!-- ================================================= -->
-            <!-- CUSTOM ADDED HTML START -->
             <div class="glass-panel rounded-[2rem] mb-8 p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 items-end text-slate-800">
-            <!-- CUSTOM ADDED HTML END -->
-            <!-- ================================================= -->
                 <div class="lg:col-span-2">
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Search Name/ID</label>
                     <div class="relative">
@@ -248,19 +223,30 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Date</label>
-                    <input type="date" id="history-date" onchange="loadHistory()" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 transition-all text-slate-800">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Sort Data</label>
+                    <select id="adv-filter-sort" onchange="triggerAdvancedPostFilter()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-semibold text-slate-800">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="highest">Highest Amount</option>
+                        <option value="lowest">Lowest Amount</option>
+                        <option value="alpha">Alphabetical</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Date End</label>
+                    <input type="date" id="adv-filter-end" onchange="triggerAdvancedPostFilter()" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-medium text-slate-800">
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Document Type</label>
                     <select id="filter-type" onchange="loadHistory()" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 transition-all text-slate-800">
                         <option value="">All Types</option>
                         <option value="Barangay Clearance">Barangay Clearance</option>
-                        <option value="Certificate of Indigency">Cert. of Indigency</option>
-                        <option value="Certificate of Residency">Cert. of Residency</option>
+                        <option value="Certificate of Indigency">Certificate of Indigency</option>
+                        <option value="Certificate of Residency">Certificate of Residency</option>
                         <option value="Barangay Business Permit">Business Permit</option>
                     </select>
                 </div>
+                
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Source</label>
                     <select id="filter-source" onchange="loadHistory()" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 transition-all text-slate-800">
@@ -274,14 +260,10 @@
                     <i class="fa-solid fa-eraser"></i> Clear Filters
                 </button>
             </div>
+            
         </div>
 
-        <!-- Modern History Table -->
-        <!-- ================================================= -->
-        <!-- CUSTOM ADDED HTML START -->
         <div class="glass-panel rounded-[2rem] overflow-hidden">
-        <!-- CUSTOM ADDED HTML END -->
-        <!-- ================================================= -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm whitespace-nowrap">
                     <thead class="bg-slate-50/95 backdrop-blur-md border-b border-slate-200">
