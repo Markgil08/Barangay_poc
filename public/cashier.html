@@ -206,69 +206,163 @@
             <div class="mb-8 flex flex-col sm:flex-row justify-between sm:items-end gap-4">
                 <div class="mb-6 md:mb-8 dashboard-header">
                     <span class="bg-teal-500/20 border border-teal-400/30 text-teal-300 text-[10px] md:text-xs font-extrabold px-3 py-1.5 rounded-full uppercase tracking-widest mb-3 inline-block">Audit Desk</span>
-                    <h2 class="heading-font text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-md">Scan & Verify</h2>
-                    <p class="text-teal-100/80 mt-1">Real-time document verification, status updating, and fraud prevention portal.</p>
+                    <h2 class="heading-font text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-md">Transaction History</h2>
+                    <p class="text-teal-100/80 mt-1">Review and filter your cashier transaction logs in real-time.</p>
                 </div>
                 <button onclick="exportCashierCSV()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 px-6 rounded-2xl text-sm shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-2">
                     <i class="fa-solid fa-download"></i> Export Shift to CSV
                 </button>
             </div>
 
-            <div class="glass-panel rounded-[2rem] mb-8 p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 items-end text-slate-800">
-                <div class="lg:col-span-2">
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Search Name/ID</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="hist-search" oninput="loadHistory()" placeholder="Search..." class="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 transition-all text-slate-800">
+            <!-- ADVANCED SEARCH & FILTERS -->
+            <div class="mb-6 glass-panel rounded-[2rem] overflow-hidden flex flex-col transition-all duration-300 shadow-lg">
+                <!-- Filter Header (Always visible) -->
+                <div class="p-5 border-b border-slate-200/60 bg-white/40 flex flex-col md:flex-row justify-between items-center gap-4 cursor-pointer hover:bg-white/60 transition-colors" onclick="toggleFilterPanel(event)">
+                    <div class="flex flex-wrap items-center gap-4 w-full md:w-auto justify-center md:justify-start">
+                        <h3 class="font-extrabold text-slate-800 uppercase tracking-wider text-sm flex items-center">
+                            <i class="fa-solid fa-sliders text-teal-600 mr-2"></i> Search & Filters
+                        </h3>
+                        <span id="active-filter-count" class="bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1 rounded-full border border-teal-200 shadow-sm transition-all duration-300">0 Active</span>
+                        <span id="filter-result-count" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">Showing 0 matching logs</span>
+                    </div>
+                    <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-end">
+                        <button onclick="clearAllFilters(event)" class="text-xs font-bold text-slate-600 hover:text-rose-600 transition-colors bg-white hover:bg-rose-50 px-4 py-2 rounded-xl border border-slate-200 hover:border-rose-200 shadow-sm flex items-center gap-2">
+                            <i class="fa-solid fa-rotate-right"></i> Reset Filters
+                        </button>
+                        <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-500 transition-transform duration-300 hover:bg-slate-50" id="filter-toggle-icon">
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Sort Data</label>
-                    <select id="adv-filter-sort" onchange="triggerAdvancedPostFilter()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-semibold text-slate-800">
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="highest">Highest Amount</option>
-                        <option value="lowest">Lowest Amount</option>
-                        <option value="alpha">Alphabetical</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Date End</label>
-                    <input type="date" id="adv-filter-end" onchange="triggerAdvancedPostFilter()" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm font-medium text-slate-800">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Document Type</label>
-                    <select id="filter-type" onchange="loadHistory()" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 transition-all text-slate-800">
-                        <option value="">All Types</option>
-                        <option value="Barangay Clearance">Barangay Clearance</option>
-                        <option value="Certificate of Indigency">Certificate of Indigency</option>
-                        <option value="Certificate of Residency">Certificate of Residency</option>
-                        <option value="Barangay Business Permit">Business Permit</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Source</label>
-                    <select id="filter-source" onchange="loadHistory()" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 transition-all text-slate-800">
-                        <option value="">All Sources</option>
-                        <option value="KIOSK">Kiosk Terminal</option>
-                        <option value="REMOTE">Remote Web</option>
-                    </select>
-                </div>
-                <div class="sm:col-span-2 lg:col-span-5 flex justify-end pt-2 border-t border-slate-200/60">
-                <button onclick="clearFilters()" class="bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 font-bold py-2.5 px-6 rounded-xl text-xs transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-eraser"></i> Clear Filters
-                </button>
-            </div>
-            
-        </div>
 
-        <div class="glass-panel rounded-[2rem] overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm whitespace-nowrap">
-                    <thead class="bg-slate-50/95 backdrop-blur-md border-b border-slate-200">
-                                <th class="p-5 font-bold text-slate-500 uppercase tracking-wider text-xs">Document & Source</th>
-                                <th class="p-5 font-bold text-slate-500 uppercase tracking-wider text-xs pr-6">Status</th>
+                <!-- Filter Collapsible Body -->
+                <div id="filter-panel-body" class="overflow-hidden transition-all duration-500 max-h-[1500px] opacity-100 ease-in-out">
+                    <div class="p-6 md:p-8 bg-slate-50/50">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <!-- Search General -->
+                            <div class="lg:col-span-2">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Search General</label>
+                                <div class="relative group">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors"></i>
+                                    <input type="text" id="adv-search-general" oninput="applyLocalFilters()" placeholder="Search Name or Ref ID..." class="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all text-slate-800 shadow-sm">
+                                </div>
+                            </div>
+                            
+                            <!-- Sort Data -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Sort Data</label>
+                                <div class="relative group">
+                                    <select id="adv-sort-data" onchange="applyLocalFilters()" class="w-full pl-4 pr-10 py-3.5 bg-white border border-slate-200 rounded-xl appearance-none text-sm font-bold focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all text-slate-800 shadow-sm cursor-pointer">
+                                        <option value="newest">Newest to Oldest</option>
+                                        <option value="oldest">Oldest to Newest</option>
+                                        <option value="az">Alphabetical A-Z</option>
+                                        <option value="za">Alphabetical Z-A</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs group-focus-within:text-teal-500"></i>
+                                </div>
+                            </div>
+
+                            <!-- Request Status -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Request Status</label>
+                                <div class="relative group">
+                                    <select id="adv-filter-status" onchange="applyLocalFilters()" class="w-full pl-4 pr-10 py-3.5 bg-white border border-slate-200 rounded-xl appearance-none text-sm font-bold focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all text-slate-800 shadow-sm cursor-pointer">
+                                        <option value="all">All Statuses</option>
+                                        <option value="COMPLETED">Completed</option>
+                                        <option value="PENDING">Pending</option>
+                                        <option value="PROCESSING">Processing</option>
+                                        <option value="CANCELLED">Cancelled</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs group-focus-within:text-teal-500"></i>
+                                </div>
+                            </div>
+
+                            <!-- Document Type -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Document Type</label>
+                                <div class="relative group">
+                                    <select id="adv-filter-type" onchange="applyLocalFilters()" class="w-full pl-4 pr-10 py-3.5 bg-white border border-slate-200 rounded-xl appearance-none text-sm font-bold focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all text-slate-800 shadow-sm cursor-pointer">
+                                        <option value="all">All Types</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs group-focus-within:text-teal-500"></i>
+                                </div>
+                            </div>
+
+                            <!-- Cashier Assigned -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Cashier Assigned</label>
+                                <div class="relative group">
+                                    <select id="adv-filter-cashier" onchange="applyLocalFilters()" class="w-full pl-4 pr-10 py-3.5 bg-white border border-slate-200 rounded-xl appearance-none text-sm font-bold focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all text-slate-800 shadow-sm cursor-pointer">
+                                        <option value="all">All Cashiers</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs group-focus-within:text-teal-500"></i>
+                                </div>
+                            </div>
+
+                            <!-- User Category -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">User Category</label>
+                                <div class="relative group">
+                                    <select id="adv-filter-usercat" onchange="applyLocalFilters()" class="w-full pl-4 pr-10 py-3.5 bg-white border border-slate-200 rounded-xl appearance-none text-sm font-bold focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all text-slate-800 shadow-sm cursor-pointer">
+                                        <option value="all">All Categories</option>
+                                        <option value="KIOSK">Kiosk Users</option>
+                                        <option value="REMOTE">Remote Portal Users</option>
+                                        <option value="WALK-IN">Walk-in Applicants</option>
+                                        <option value="RETURNING">Returning Applicants</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs group-focus-within:text-teal-500"></i>
+                                </div>
+                            </div>
+
+                            <!-- Purpose Category -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Purpose Category</label>
+                                <div class="relative group">
+                                    <select id="adv-filter-purpose" onchange="applyLocalFilters()" class="w-full pl-4 pr-10 py-3.5 bg-white border border-slate-200 rounded-xl appearance-none text-sm font-bold focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all text-slate-800 shadow-sm cursor-pointer">
+                                        <option value="all">All Purposes</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs group-focus-within:text-teal-500"></i>
+                                </div>
+                            </div>
+
+                            <!-- Date Range -->
+                            <div class="lg:col-span-2 grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Start Date</label>
+                                    <div class="relative group">
+                                        <input type="date" id="adv-filter-date-start" onchange="applyLocalFilters()" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all text-slate-800 shadow-sm">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">End Date</label>
+                                    <div class="relative group">
+                                        <input type="date" id="adv-filter-date-end" onchange="applyLocalFilters()" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all text-slate-800 shadow-sm">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Active Filter Tags Container -->
+                        <div class="mt-6 border-t border-slate-200/60 pt-4 flex items-start gap-3">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 whitespace-nowrap"><i class="fa-solid fa-tags mr-1"></i> Active Filters:</span>
+                            <div id="active-filter-tags" class="flex flex-wrap gap-2 min-h-[28px] w-full">
+                                <span class="text-xs text-slate-400 italic py-1.5">No active filters applied.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-[2rem] overflow-hidden shadow-lg">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-white/80 backdrop-blur-md border-b border-slate-200/80">
+                            <tr>
+                                <th class="p-5 font-bold text-slate-500 uppercase tracking-wider text-[10px]">Date & Time</th>
+                                <th class="p-5 font-bold text-slate-500 uppercase tracking-wider text-[10px]">Transaction ID</th>
+                                <th class="p-5 font-bold text-slate-500 uppercase tracking-wider text-[10px]">Applicant Name</th>
+                                <th class="p-5 font-bold text-slate-500 uppercase tracking-wider text-[10px]">Document & Source</th>
+                                <th class="p-5 font-bold text-slate-500 uppercase tracking-wider text-[10px] pr-6">Status</th>
                             </tr>
                         </thead>
                         <tbody id="history-body" class="divide-y divide-slate-100/80 bg-white/50"></tbody>
@@ -281,7 +375,6 @@
 </div>
 
 <script>
-
     let currentCashierName = "";
     let currentTransactionId = null;
     let cashierHistoryData = []; 
@@ -315,7 +408,14 @@
             document.getElementById('logged-in-name').innerText = currentCashierName;
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('dashboard-layout').classList.remove('hidden');
-            document.getElementById('history-date').value = new Date().toISOString().split('T')[0];
+            
+            // Set default date range to today's date upon login
+            const today = new Date().toISOString().split('T')[0];
+            const startDateEl = document.getElementById('adv-filter-date-start');
+            if(startDateEl) startDateEl.value = today;
+            const endDateEl = document.getElementById('adv-filter-date-end');
+            if(endDateEl) endDateEl.value = today;
+
             loadHistory();
             document.getElementById('manual-scan-input').focus();
         } else {
@@ -466,66 +566,299 @@
             document.getElementById('scan-feedback').innerHTML = `<span class="text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100"><i class="fa-solid fa-check mr-1"></i> ${result.message}</span>`;
             resetDetails();
             document.getElementById('manual-scan-input').focus();
+            loadHistory(); // Added auto-refresh of history data after action
         } else {
             alert(result.message);
         }
     }
 
-    function clearFilters() {
-        document.getElementById('hist-search').value = "";
-        document.getElementById('history-date').value = "";
-        document.getElementById('filter-type').value = "";
-        document.getElementById('filter-source').value = "";
-        loadHistory();
+    let allHistoryData = []; // Store raw fetched data for local filtering
+
+    // Function to handle collapse/expand animation
+    function toggleFilterPanel(event) {
+        if(event && (event.target.closest('button') || event.target.tagName === 'BUTTON')) return; // Ignore if clicking Reset
+
+        const panel = document.getElementById('filter-panel-body');
+        const icon = document.getElementById('filter-toggle-icon');
+        
+        if (panel.style.maxHeight === '0px' || panel.classList.contains('max-h-0')) {
+            // Expand
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+            panel.classList.remove('opacity-0', 'max-h-0');
+            panel.classList.add('opacity-100');
+            icon.style.transform = 'rotate(0deg)';
+            
+            // reset max height after animation so it adapts if window resizes
+            setTimeout(() => { panel.style.maxHeight = '1500px'; }, 500); 
+        } else {
+            // Collapse
+            panel.style.maxHeight = panel.scrollHeight + 'px'; // Set explicitly before collapse for transition
+            setTimeout(() => {
+                panel.style.maxHeight = '0px';
+                panel.classList.remove('opacity-100');
+                panel.classList.add('opacity-0');
+                icon.style.transform = 'rotate(-180deg)';
+            }, 10);
+        }
+    }
+
+    function removeFilter(elementId, defaultVal) {
+        const el = document.getElementById(elementId);
+        if(el) {
+            el.value = defaultVal;
+            applyLocalFilters();
+        }
+    }
+
+    function clearAllFilters(event) {
+        if(event) event.stopPropagation();
+        document.getElementById('adv-search-general').value = "";
+        document.getElementById('adv-sort-data').value = "newest";
+        document.getElementById('adv-filter-status').value = "all";
+        document.getElementById('adv-filter-type').value = "all";
+        document.getElementById('adv-filter-cashier').value = "all";
+        document.getElementById('adv-filter-usercat').value = "all";
+        document.getElementById('adv-filter-purpose').value = "all";
+        document.getElementById('adv-filter-date-start').value = "";
+        document.getElementById('adv-filter-date-end').value = "";
+        applyLocalFilters();
+    }
+
+    function populateDynamicFilters(data) {
+        const typeSet = new Set();
+        const cashierSet = new Set();
+        const purposeSet = new Set();
+
+        data.forEach(row => {
+            if (row.doc_type) typeSet.add(row.doc_type);
+            if (row.cashier_name) cashierSet.add(row.cashier_name);
+            
+            // Extract purpose from document_data JSON if available
+            try {
+                const parsed = JSON.parse(row.document_data);
+                if (parsed.Purpose) purposeSet.add(parsed.Purpose);
+                else if (parsed.purpose) purposeSet.add(parsed.purpose);
+            } catch(e) {}
+        });
+
+        const updateSelect = (id, set, defaultOption) => {
+            const select = document.getElementById(id);
+            const currentVal = select.value;
+            select.innerHTML = `<option value="all">${defaultOption}</option>`;
+            [...set].sort().forEach(item => {
+                if(item) select.innerHTML += `<option value="${item}">${item}</option>`;
+            });
+            select.value = currentVal || 'all';
+            if(select.selectedIndex === -1) select.value = 'all';
+        };
+
+        updateSelect('adv-filter-type', typeSet, 'All Types');
+        updateSelect('adv-filter-cashier', cashierSet, 'All Cashiers');
+        updateSelect('adv-filter-purpose', purposeSet, 'All Purposes');
+    }
+
+    function applyLocalFilters() {
+        const query = document.getElementById('adv-search-general').value.toLowerCase().trim();
+        const sortMode = document.getElementById('adv-sort-data').value;
+        const statusMode = document.getElementById('adv-filter-status').value;
+        const docType = document.getElementById('adv-filter-type').value;
+        const cashier = document.getElementById('adv-filter-cashier').value;
+        const userCat = document.getElementById('adv-filter-usercat').value;
+        const purpose = document.getElementById('adv-filter-purpose').value;
+        const startDate = document.getElementById('adv-filter-date-start').value;
+        const endDate = document.getElementById('adv-filter-date-end').value;
+
+        let activeCount = 0;
+        let tagsHtml = '';
+
+        const addTag = (label, id, defaultVal) => {
+            activeCount++;
+            tagsHtml += `
+                <div class="inline-flex items-center bg-teal-50 text-teal-800 border border-teal-200 rounded-xl px-3 py-1.5 text-xs font-bold shadow-sm transition-all hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 group cursor-default">
+                    <span>${label}</span>
+                    <button class="ml-2.5 text-teal-400 group-hover:text-rose-500 focus:outline-none transition-colors" onclick="removeFilter('${id}', '${defaultVal}')">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            `;
+        };
+
+        if (query) addTag(`Search: "${query}"`, 'adv-search-general', '');
+        if (sortMode !== 'newest') {
+             let sortLabel = sortMode === 'oldest' ? 'Oldest First' : (sortMode === 'az' ? 'A-Z' : 'Z-A');
+             addTag(`Sort: ${sortLabel}`, 'adv-sort-data', 'newest');
+        }
+        if (statusMode !== 'all') addTag(`Status: ${statusMode}`, 'adv-filter-status', 'all');
+        if (docType !== 'all') addTag(`Type: ${docType}`, 'adv-filter-type', 'all');
+        if (cashier !== 'all') addTag(`Cashier: ${cashier}`, 'adv-filter-cashier', 'all');
+        if (userCat !== 'all') addTag(`User: ${userCat}`, 'adv-filter-usercat', 'all');
+        if (purpose !== 'all') addTag(`Purpose: ${purpose}`, 'adv-filter-purpose', 'all');
+        if (startDate) addTag(`From: ${startDate}`, 'adv-filter-date-start', '');
+        if (endDate) addTag(`To: ${endDate}`, 'adv-filter-date-end', '');
+
+        const countBadge = document.getElementById('active-filter-count');
+        countBadge.innerText = `${activeCount} Active`;
+        if (activeCount > 0) {
+            countBadge.classList.replace('bg-teal-100', 'bg-teal-500');
+            countBadge.classList.replace('text-teal-700', 'text-white');
+        } else {
+            countBadge.classList.replace('bg-teal-500', 'bg-teal-100');
+            countBadge.classList.replace('text-white', 'text-teal-700');
+        }
+
+        const tagsContainer = document.getElementById('active-filter-tags');
+        if(activeCount === 0) {
+            tagsContainer.innerHTML = '<span class="text-xs text-slate-400 font-medium py-1.5">No active filters applied.</span>';
+        } else {
+            tagsContainer.innerHTML = tagsHtml;
+        }
+
+        // Apply filtering logic locally
+        let filtered = allHistoryData.filter(row => {
+            let match = true;
+
+            // Search General (Name or ID)
+            if (query) {
+                const searchStr = `${row.user_name || ''} ${row.transaction_id || ''}`.toLowerCase();
+                if (!searchStr.includes(query)) match = false;
+            }
+
+            // Status
+            if (statusMode !== 'all' && row.status !== statusMode) match = false;
+
+            // Document Type
+            if (docType !== 'all' && row.doc_type !== docType) match = false;
+
+            // Cashier
+            if (cashier !== 'all' && row.cashier_name !== cashier) match = false;
+
+            // User Category
+            if (userCat !== 'all') {
+                if (userCat === 'KIOSK' && row.source !== 'KIOSK') match = false;
+                if (userCat === 'REMOTE' && row.source !== 'REMOTE') match = false;
+                if (userCat === 'WALK-IN' || userCat === 'RETURNING') {
+                     try {
+                         const parsed = JSON.parse(row.document_data);
+                         const isWalkin = parsed.Category === 'WALK-IN' || parsed.ApplicantType === 'WALK-IN';
+                         const isReturning = parsed.Category === 'RETURNING' || parsed.ApplicantType === 'RETURNING';
+                         if (userCat === 'WALK-IN' && !isWalkin) match = false;
+                         if (userCat === 'RETURNING' && !isReturning) match = false;
+                     } catch(e) { match = false; }
+                }
+            }
+
+            // Purpose
+            if (purpose !== 'all') {
+                let pMatch = false;
+                try {
+                    const parsed = JSON.parse(row.document_data);
+                    if (parsed.Purpose === purpose || parsed.purpose === purpose) pMatch = true;
+                } catch(e) {}
+                if (!pMatch) match = false;
+            }
+
+            // Date Range
+            if (startDate || endDate) {
+                const rowDate = new Date(row.created_at);
+                rowDate.setHours(0,0,0,0);
+                
+                if (startDate) {
+                    const sDate = new Date(startDate);
+                    sDate.setHours(0,0,0,0);
+                    if (rowDate < sDate) match = false;
+                }
+                if (endDate) {
+                    const eDate = new Date(endDate);
+                    eDate.setHours(23,59,59,999);
+                    if (rowDate > eDate) match = false;
+                }
+            }
+
+            return match;
+        });
+
+        // Apply sorting locally
+        filtered.sort((a, b) => {
+            if (sortMode === 'newest') return new Date(b.created_at) - new Date(a.created_at);
+            if (sortMode === 'oldest') return new Date(a.created_at) - new Date(b.created_at);
+            if (sortMode === 'az') return (a.user_name || '').localeCompare(b.user_name || '');
+            if (sortMode === 'za') return (b.user_name || '').localeCompare(a.user_name || '');
+            return 0;
+        });
+
+        // Update global reference for CSV Export and Render Table
+        cashierHistoryData = filtered; 
+        document.getElementById('filter-result-count').innerText = `Showing ${filtered.length} matching log${filtered.length !== 1 ? 's' : ''}`;
+        renderHistoryTable(filtered);
     }
 
     async function loadHistory() {
-        const dateStr = document.getElementById('history-date').value;
-        const searchQuery = document.getElementById('hist-search').value;
-        const docType = document.getElementById('filter-type').value;
-        const source = document.getElementById('filter-source').value;
+        // Fetch all generic data for the cashier, local JS will handle advanced filtering instantly without backend lag
+        try {
+            const res = await fetch('/api/cashier-history', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    cashierName: currentCashierName, 
+                    dateStr: "", 
+                    searchQuery: "",
+                    docType: "",
+                    source: ""
+                })
+            });
+            const result = await res.json();
 
-        const res = await fetch('/api/cashier-history', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                cashierName: currentCashierName, 
-                dateStr: dateStr, 
-                searchQuery: searchQuery,
-                docType: docType,
-                source: source
-            })
-        });
-        const result = await res.json();
+            if (result.success && result.history) {
+                allHistoryData = result.history;
+                populateDynamicFilters(allHistoryData);
+                applyLocalFilters();
+            } else {
+                allHistoryData = [];
+                applyLocalFilters();
+            }
+        } catch(e) {
+            console.error("History fetch error:", e);
+            allHistoryData = [];
+            applyLocalFilters();
+        }
+    }
 
+    function renderHistoryTable(data) {
         const tbody = document.getElementById('history-body');
-        if (result.success && result.history.length > 0) {
-            cashierHistoryData = result.history; // Save for CSV export
+        if (data.length > 0) {
             let html = '';
-            result.history.forEach(row => {
-                const timeStr = new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                let statusColor = row.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 shadow-sm' : 'bg-slate-50 text-slate-500 border-slate-200';
+            data.forEach(row => {
+                const dateObj = new Date(row.created_at);
+                const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const dateStr = dateObj.toLocaleDateString([], { month: 'short', day: '2-digit', year: 'numeric' });
+                
+                let statusColor = row.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 
+                                  row.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                                  row.status === 'CANCELLED' ? 'bg-rose-50 text-rose-600 border-rose-200' :
+                                  'bg-blue-50 text-blue-600 border-blue-200';
                 
                 let sourceBadge = '';
-                if (row.source === 'KIOSK') sourceBadge = '<span class="bg-blue-50 text-blue-600 border border-blue-200 text-[10px] px-2 py-0.5 rounded-md font-extrabold mt-1.5 inline-block shadow-sm tracking-wider">KIOSK</span>';
-                else if (row.source === 'REMOTE') sourceBadge = '<span class="bg-purple-50 text-purple-600 border border-purple-200 text-[10px] px-2 py-0.5 rounded-md font-extrabold mt-1.5 inline-block shadow-sm tracking-wider">WEB</span>';
+                if (row.source === 'KIOSK') sourceBadge = '<span class="bg-blue-50 text-blue-600 border border-blue-200 text-[9px] px-2 py-0.5 rounded-md font-extrabold mt-1.5 inline-block shadow-sm tracking-wider">KIOSK</span>';
+                else if (row.source === 'REMOTE') sourceBadge = '<span class="bg-purple-50 text-purple-600 border border-purple-200 text-[9px] px-2 py-0.5 rounded-md font-extrabold mt-1.5 inline-block shadow-sm tracking-wider">WEB</span>';
 
                 html += `
-                    <tr class="hover:bg-slate-50/80 transition-colors border-b border-slate-100/80">
-                        <td class="p-5 text-slate-500 font-mono text-xs">${timeStr}</td>
-                        <td class="p-5 font-mono text-xs text-teal-700 font-bold"><span class="bg-teal-50 border border-teal-100 px-2 py-1 rounded-md shadow-sm">${row.transaction_id}</span></td>
-                        <td class="p-5 font-bold text-slate-800">${row.user_name}</td>
+                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100/80 group">
+                        <td class="p-5 font-mono text-xs">
+                            <div class="font-bold text-slate-700">${dateStr}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">${timeStr}</div>
+                        </td>
+                        <td class="p-5 font-mono text-xs text-teal-700 font-bold"><span class="bg-teal-50 border border-teal-100 px-2 py-1 rounded-md shadow-sm group-hover:bg-white transition-colors">${row.transaction_id}</span></td>
+                        <td class="p-5 font-bold text-slate-800 text-sm">${row.user_name}</td>
                         <td class="p-5 leading-tight">
-                            <span class="text-slate-700 text-xs uppercase font-extrabold block">${row.doc_type}</span>
+                            <span class="text-slate-700 text-xs uppercase font-extrabold block tracking-wide">${row.doc_type}</span>
                             ${sourceBadge}
                         </td>
-                        <td class="p-5 font-bold text-xs"><span class="px-3.5 py-1.5 rounded-xl border ${statusColor}">${row.status}</span></td>
+                        <td class="p-5 font-bold text-xs"><span class="px-3.5 py-1.5 rounded-xl border shadow-sm ${statusColor}">${row.status}</span></td>
                     </tr>
                 `;
             });
             tbody.innerHTML = html;
         } else {
-            cashierHistoryData = [];
-            tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-medium bg-slate-50/50"><i class="fa-solid fa-folder-open text-3xl mb-3 text-slate-300 block"></i>No transactions found matching your criteria.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-medium bg-slate-50/50"><i class="fa-solid fa-folder-open text-4xl mb-3 text-slate-300 block"></i>No transaction records matched your filter criteria.</td></tr>`;
         }
     }
 
